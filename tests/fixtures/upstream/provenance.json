@@ -4,8 +4,8 @@
   "license": "AGPL-3.0-or-later",
   "fixture_policy": "Synthetic black-box observations only; no upstream font binaries or full mappings are copied.",
   "sources": {
-    "scripts/generate_font.py": "58cc24813edfc4a6900c9fd6419223bed08fc8a59c67de49359e0ea8467a5d34",
-    "scripts/audit_font.py": "449a9b9e0727762fbd5bb365a74331e66f50d307b2473789eb73e646396a9254",
-    "scripts/fix_composite_lsb.py": "0dad2be520a49245af20d8a7c6cceee7275191c3b76b9b264db4fb598b3d01b6"
+    "scripts/generate_font.py": "0f73687f1e197cbe974e2db70c9bf21b940cdfc17cd94561f9b961da35b3e493",
+    "scripts/audit_font.py": "482360cf11f966a4b25398567500413b0b0662d6678414f6e1678ab9fc805636",
+    "scripts/fix_composite_lsb.py": "80f8699d5d33e174338ed63eff4c104731facce6ef24d9b21b601a6f5413a8a7"
   }
 }

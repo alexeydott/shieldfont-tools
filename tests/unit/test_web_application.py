@@ -92,16 +92,23 @@ def test_web_actions_accept_font_paths_in_custom_fonts_directory(
 
 
 def test_web_actions_uploads_and_validates_source_font(tmp_path: Path) -> None:
-    source = Path(__file__).parents[2] / ".fonts" / "segoeprb.ttf"
+    source = (
+        Path(__file__).parents[2]
+        / "deps"
+        / "shieldfont"
+        / "packages"
+        / "font"
+        / "optik-a.woff2"
+    )
     actions = WebActions(tmp_path)
 
     result = actions(
         "font-upload",
-        {"filename": "uploaded.ttf", "content": source.read_bytes()},
+        {"filename": "uploaded.woff2", "content": source.read_bytes()},
     )
 
-    uploaded = tmp_path / ".fonts" / "uploaded.ttf"
-    assert result["path"] == ".fonts/uploaded.ttf"
+    uploaded = tmp_path / ".fonts" / "uploaded.woff2"
+    assert result["path"] == ".fonts/uploaded.woff2"
     assert result["inspection"]["outlines"]["type"] == "glyf"
     assert uploaded.read_bytes() == source.read_bytes()
 
@@ -305,7 +312,7 @@ def test_web_actions_passes_css_build_options(
     assert options.embed_font is True
     assert captured["asset_root"] == (tmp_path / "dist" / "fonts").resolve()
     assert captured["output"] == (tmp_path / "dist/demo.css").resolve()
-    assert result["artifacts"]["css"].endswith("dist\\demo.css")
+    assert result["artifacts"]["css"].endswith(str(Path("dist/demo.css")))
 
 
 def test_web_actions_css_build_verifies_selected_source_font(
@@ -347,7 +354,7 @@ def test_web_actions_css_build_verifies_selected_source_font(
         },
     )
 
-    assert result["artifacts"]["css"].endswith("dist\\demo.css")
+    assert result["artifacts"]["css"].endswith(str(Path("dist/demo.css")))
 
 
 def test_web_actions_css_build_rebuilds_stale_selected_source_font(
@@ -425,4 +432,4 @@ def test_web_actions_css_build_rebuilds_stale_selected_source_font(
             "source": source.resolve(),
         }
     ]
-    assert result["artifacts"]["css"].endswith("dist\\demo.css")
+    assert result["artifacts"]["css"].endswith(str(Path("dist/demo.css")))

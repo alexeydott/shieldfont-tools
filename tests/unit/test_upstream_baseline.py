@@ -60,7 +60,8 @@ def test_upstream_sources_match_pinned_provenance() -> None:
 
     assert commit == provenance["commit"]
     for relative_path, expected_hash in provenance["sources"].items():
-        digest = hashlib.sha256((UPSTREAM / relative_path).read_bytes()).hexdigest()
+        source = (UPSTREAM / relative_path).read_bytes().replace(b"\r\n", b"\n")
+        digest = hashlib.sha256(source).hexdigest()
         assert digest == expected_hash
 
 
