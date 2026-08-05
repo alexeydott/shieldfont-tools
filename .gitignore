@@ -16,6 +16,10 @@ RULES.md
 # Dependencies and local secrets
 node_modules/
 **/node_modules/
+.venv/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
 .env
 .env.*
 

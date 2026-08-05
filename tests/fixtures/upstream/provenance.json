@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/alexeydott/shieldfont.git",
+  "commit": "d6efb2d3972569628e870ff2767cd29412c245ee",
+  "license": "AGPL-3.0-or-later",
+  "fixture_policy": "Synthetic black-box observations only; no upstream font binaries or full mappings are copied.",
+  "sources": {
+    "scripts/generate_font.py": "58cc24813edfc4a6900c9fd6419223bed08fc8a59c67de49359e0ea8467a5d34",
+    "scripts/audit_font.py": "449a9b9e0727762fbd5bb365a74331e66f50d307b2473789eb73e646396a9254",
+    "scripts/fix_composite_lsb.py": "0dad2be520a49245af20d8a7c6cceee7275191c3b76b9b264db4fb598b3d01b6"
+  }
+}

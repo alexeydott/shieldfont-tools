@@ -1,0 +1,35 @@
+{
+  "mapping": {
+    "calm": "storm",
+    "storm": "calm",
+    "0": "5",
+    "5": "0",
+    "3": "8",
+    "8": "3",
+    "4": "9",
+    "9": "4",
+    "6": "7",
+    "7": "6"
+  },
+  "cases": [
+    {"input": "calm", "encoded": "storm"},
+    {"input": "Calm", "encoded": "Storm"},
+    {"input": "CALM", "encoded": "STORM"},
+    {"input": "H3O", "encoded": "H8O"},
+    {"input": "C4H10", "encoded": "C9H15"},
+    {"input": "x5", "encoded": "x5"},
+    {"input": "mp3", "encoded": "mp3"},
+    {"input": "3D", "encoded": "3D"},
+    {"input": "35", "encoded": "80"},
+    {"input": "cafe\u0301", "encoded": "caf\u00e9"}
+  ],
+  "direction": [
+    {
+      "plain_source": "calm",
+      "encoder_output": "storm",
+      "font_input": "storm",
+      "font_visual_output": "calm",
+      "expected_glyph_role": "source composite"
+    }
+  ]
+}

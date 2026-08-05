@@ -1,0 +1,33 @@
+{
+  "fire_then_revert": {
+    "lookup_order": [
+      "ligature_substitution",
+      "digit_single_substitution",
+      "multiple_substitution_revert",
+      "letter_before_reverter",
+      "letter_after_reverter"
+    ],
+    "public_feature": "ccmp",
+    "internal_only_lookup": "multiple_substitution_revert",
+    "cases": [
+      {"text": "in", "expected": "source composite", "reason": "standalone word"},
+      {"text": "in ", "expected": "source composite", "reason": "run start"},
+      {"text": " in", "expected": "source composite", "reason": "run end"},
+      {"text": "(in)", "expected": "source composite", "reason": "punctuation boundaries"},
+      {"text": "winter", "expected": "plain letters", "reason": "letter after target"},
+      {"text": "beginning", "expected": "plain letters", "reason": "letter before and after target"}
+    ]
+  },
+  "chunking": {
+    "ligature_subtable_budget_bytes": 40960,
+    "maximum_reverts_per_subtable": 1500,
+    "ligatures_with_common_prefix": "longest-first",
+    "coverage_order": "glyph-id",
+    "bulk_offset_strategy": "extension-compatible"
+  },
+  "composite_metrics": [
+    {"glyph": "word.synthetic.clean", "advance": 1200, "lsb": 73, "xMin": 73, "damaged": false},
+    {"glyph": "word.synthetic.broken", "advance": 1200, "lsb": 0, "xMin": 73, "damaged": true},
+    {"glyph": "word.synthetic.negative", "advance": 1200, "lsb": 90, "xMin": 73, "damaged": true}
+  ]
+}

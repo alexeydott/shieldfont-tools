@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "accepted": [
+    {"container": "ttf", "tables": ["glyf"], "variable": false},
+    {"container": "woff2", "tables": ["glyf"], "variable": false},
+    {"container": "ttf", "tables": ["glyf", "fvar", "gvar"], "variable": true, "requires_instancing": true},
+    {"container": "woff2", "tables": ["glyf", "fvar", "gvar"], "variable": true, "requires_instancing": true}
+  ],
+  "rejected": [
+    {"container": "otf", "tables": ["CFF "]},
+    {"container": "otf", "tables": ["CFF2"]},
+    {"container": "ttc", "tables": ["glyf"]},
+    {"container": "woff2", "tables": ["CFF2"]},
+    {"container": "type1", "tables": []}
+  ],
+  "output": {
+    "containers": ["ttf", "woff2"],
+    "required_table": "glyf",
+    "variable": false
+  }
+}
