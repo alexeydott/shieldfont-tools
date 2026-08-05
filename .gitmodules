@@ -1,0 +1,3 @@
+[submodule "deps/shieldfont"]
+	path = deps/shieldfont
+	url = https://github.com/alexeydott/shieldfont.git

@@ -1,0 +1,47 @@
+# Agent-managed files and local runtime configuration
+.agents/
+.ai-factory/
+.codex/
+.opencode/
+.github/skills/
+.mcp.json
+.ai-factory.json
+.vscode/mcp.json
+opencode.json
+skills-lock.json
+AGENTS.md
+CLAUDE.md
+RULES.md
+
+# Dependencies and local secrets
+node_modules/
+**/node_modules/
+.env
+.env.*
+
+# Build, test, coverage, and generated reports
+dist/
+build/
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+test-results/
+playwright-report/
+blob-report/
+coverage.xml
+pytest.xml
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.log
