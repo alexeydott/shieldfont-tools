@@ -1,0 +1,41 @@
+{
+  "rulesetHash": "sha256:80123f099b76acee2c4d2a11e89094fe7c42c22b7d580bc2a1a9a8dec2a769c5",
+  "schema": "shieldfont-ruleset/v1",
+  "scopes": [
+    {
+      "defaultLanguage": true,
+      "id": "en",
+      "languages": [
+        "dflt"
+      ],
+      "locales": [
+        "en-US"
+      ],
+      "mappingHash": "sha256:5f37e3c43a4d92a9830f1b917bb9962aab99edcca34f62b80fe97d773b686535",
+      "openTypeScript": "latn",
+      "pairs": 2,
+      "rules": [
+        {
+          "caseMode": "auto",
+          "priority": 0,
+          "source": "target",
+          "tags": [],
+          "target": "source"
+        },
+        {
+          "caseMode": "auto",
+          "priority": 0,
+          "source": "source",
+          "tags": [],
+          "target": "target"
+        }
+      ],
+      "sourceScripts": [
+        "latn"
+      ],
+      "targetScripts": [
+        "latn"
+      ]
+    }
+  ]
+}

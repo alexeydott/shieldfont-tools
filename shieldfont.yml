@@ -1,0 +1,83 @@
+codec:
+  browserBuild: false
+  embedMappings: false
+  formats:
+  - esm
+  - cjs
+  packageName: '@shieldfont/project-codec'
+  unknownScopePolicy: no-op
+css:
+  assetBaseUrl: ./fonts/
+  classes:
+    neutral: sf-text
+    shield: sf-shield
+  embedFont: false
+  file: D:\projects\externals\ShieldFontTools\dist\shieldfont.css
+  fontDisplay: block
+  fontSynthesis: none
+font:
+  description: ShieldFont derivative
+  family: SegoeUI_shld
+  shieldFace:
+    family: ShieldFont
+  neutralFace:
+    enabled: true
+    family: SegoeUI Text
+  outputFormats:
+  - ttf
+  - woff2
+layout:
+  boundaryMode: fire-then-revert
+  defaultFeature: ccmp
+  defaultScopePolicy: fallback
+  maxEstimatedSubtableBytes: 40960
+  useExtensionLookups: true
+license:
+  policy: warn
+mapping:
+  caseMode: auto
+  crossScript: false
+  duplicatePolicy: error
+  mode: directed
+  normalization: NFC
+  selfMapPolicy: drop-with-warning
+  targetCollisionPolicy: error
+project:
+  id: shieldfont
+  outputDir: D:\projects\externals\ShieldFontTools\dist
+  reproducible: true
+  version: 0.1.0
+schema: shieldfont/v1
+scopes:
+- dictionaries:
+  - D:\projects\externals\ShieldFontTools\dictionaries\default.csv
+  encoder:
+    locales: []
+    sourceScripts: []
+  id: default
+  shaping:
+    defaultLanguage: true
+    languages: []
+    openTypeScript: DFLT
+    targetScripts: []
+source:
+  allowedContainers:
+  - ttf
+  - woff2
+  instance:
+    axes: {}
+  path: D:\projects\externals\ShieldFontTools\.fonts\segoepr.ttf
+  requiredOutline: glyf
+verification:
+  browsers:
+  - chromium
+  - firefox
+  - webkit
+  failOnWarning: false
+  harfbuzz:
+    implementation: both
+  levels:
+  - structural
+  - shaping
+  - codec
+  - browser

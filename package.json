@@ -11,10 +11,22 @@
     "test": "npm run test:python && npm run test:node",
     "test:python": "python -m pytest",
     "test:node": "npm run test --workspaces --if-present",
+    "test:browser": "playwright test",
+    "build:web": "node scripts/build_web_bundle.mjs",
     "lint": "python -m ruff check . && npm run lint --workspaces --if-present",
-    "typecheck": "python -m mypy src && npm run typecheck --workspaces --if-present"
+    "typecheck": "python -m mypy src && npm run typecheck --workspaces --if-present",
+    "benchmark": "python scripts/benchmark.py"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  },
+  "dependencies": {
+    "@monaco-editor/loader": "1.4.0",
+    "monaco-editor": "0.43.0",
+    "monaco-yaml": "5.5.1",
+    "yaml": "2.8.1"
   }
 }

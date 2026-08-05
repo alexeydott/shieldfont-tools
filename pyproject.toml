@@ -24,6 +24,7 @@ dev = [
   "pytest>=8.4",
   "pytest-cov>=6.2",
   "ruff>=0.12",
+  "types-PyYAML>=6.0",
 ]
 
 [project.scripts]
@@ -31,6 +32,9 @@ shieldfont = "shieldfont.presentation.cli.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+shieldfont = ["config/schemas/*.json", "presentation/web/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -44,6 +48,7 @@ packages = ["shieldfont"]
 [tool.ruff]
 target-version = "py312"
 line-length = 88
+extend-exclude = ["deps/shieldfont"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

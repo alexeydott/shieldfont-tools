@@ -1,0 +1,652 @@
+{
+  "$defs": {
+    "CodecSection": {
+      "additionalProperties": false,
+      "description": "Defines generated JavaScript codec package formats and policies.",
+      "properties": {
+        "browserBuild": {
+          "default": false,
+          "description": "Affects whether a browser-oriented codec build is emitted.",
+          "title": "Browserbuild",
+          "type": "boolean"
+        },
+        "embedMappings": {
+          "default": false,
+          "description": "Affects whether mapping data is embedded directly in codec output.",
+          "title": "Embedmappings",
+          "type": "boolean"
+        },
+        "formats": {
+          "description": "Affects which JavaScript module formats are emitted by the codec build.",
+          "items": {
+            "enum": [
+              "esm",
+              "cjs",
+              "iife"
+            ],
+            "type": "string"
+          },
+          "title": "Formats",
+          "type": "array"
+        },
+        "packageName": {
+          "default": "@shieldfont/project-codec",
+          "description": "Affects the package name written into generated codec metadata.",
+          "title": "Packagename",
+          "type": "string"
+        },
+        "unknownScopePolicy": {
+          "default": "no-op",
+          "description": "Affects codec behavior when the requested scope is unknown.",
+          "enum": [
+            "no-op",
+            "error"
+          ],
+          "title": "Unknownscopepolicy",
+          "type": "string"
+        }
+      },
+      "title": "CodecSection",
+      "type": "object"
+    },
+    "CssClassesSection": {
+      "additionalProperties": false,
+      "description": "Defines CSS class names emitted for generated font styles.",
+      "properties": {
+        "neutral": {
+          "default": "sf-text",
+          "description": "Affects the CSS class applied to neutral-font text.",
+          "title": "Neutral",
+          "type": "string"
+        },
+        "shield": {
+          "default": "sf-shield",
+          "description": "Affects the CSS class applied to ShieldFont-rendered text.",
+          "title": "Shield",
+          "type": "string"
+        }
+      },
+      "title": "CssClassesSection",
+      "type": "object"
+    },
+    "CssSection": {
+      "additionalProperties": false,
+      "description": "Defines generated stylesheet and browser font-loading behavior.",
+      "properties": {
+        "assetBaseUrl": {
+          "default": "./fonts/",
+          "description": "Affects the URL prefix used to locate generated font assets.",
+          "title": "Assetbaseurl",
+          "type": "string"
+        },
+        "classes": {
+          "$ref": "#/$defs/CssClassesSection",
+          "description": "Affects the CSS class names emitted for generated text styles."
+        },
+        "embedFont": {
+          "default": false,
+          "description": "Affects whether generated font data is embedded as base64 data URLs in CSS.",
+          "title": "Embedfont",
+          "type": "boolean"
+        },
+        "file": {
+          "description": "Affects the output path of the generated CSS stylesheet.",
+          "format": "path",
+          "title": "File",
+          "type": "string"
+        },
+        "fontDisplay": {
+          "default": "block",
+          "description": "Affects how browsers display fallback text while fonts load.",
+          "enum": [
+            "auto",
+            "block",
+            "swap",
+            "fallback",
+            "optional"
+          ],
+          "title": "Fontdisplay",
+          "type": "string"
+        },
+        "fontSynthesis": {
+          "const": "none",
+          "default": "none",
+          "description": "Affects whether browsers may synthesize missing font styles.",
+          "title": "Fontsynthesis",
+          "type": "string"
+        }
+      },
+      "title": "CssSection",
+      "type": "object"
+    },
+    "EncoderScopeSection": {
+      "additionalProperties": false,
+      "description": "Defines source-side locale and script matching for a scope.",
+      "properties": {
+        "locales": {
+          "description": "Affects which source locales use this scope during encoding.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Locales",
+          "type": "array"
+        },
+        "sourceScripts": {
+          "description": "Affects which source scripts use this scope during encoding.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Sourcescripts",
+          "type": "array"
+        }
+      },
+      "title": "EncoderScopeSection",
+      "type": "object"
+    },
+    "FontSection": {
+      "additionalProperties": false,
+      "description": "Defines generated font metadata, formats, and neutral-face settings.",
+      "properties": {
+        "description": {
+          "default": "ShieldFont derivative",
+          "description": "Affects the descriptive metadata embedded in generated fonts.",
+          "title": "Description",
+          "type": "string"
+        },
+        "family": {
+          "default": "ShieldFont",
+          "description": "Affects the generated font asset family and filename.",
+          "title": "Family",
+          "type": "string"
+        },
+        "neutralFace": {
+          "$ref": "#/$defs/NeutralFaceSection",
+          "description": "Affects the options for the generated neutral face."
+        },
+        "outputFormats": {
+          "description": "Affects which font container formats are emitted.",
+          "items": {
+            "enum": [
+              "ttf",
+              "woff2"
+            ],
+            "type": "string"
+          },
+          "title": "Outputformats",
+          "type": "array"
+        },
+        "shieldFace": {
+          "$ref": "#/$defs/ShieldFaceSection",
+          "description": "Affects the local CSS family name for the generated ShieldFont face."
+        }
+      },
+      "title": "FontSection",
+      "type": "object"
+    },
+    "HarfBuzzSection": {
+      "additionalProperties": false,
+      "description": "Defines the HarfBuzz backend used by shaping verification.",
+      "properties": {
+        "implementation": {
+          "default": "both",
+          "description": "Affects which HarfBuzz implementation is used for shaping verification.",
+          "enum": [
+            "uharfbuzz",
+            "binary",
+            "both"
+          ],
+          "title": "Implementation",
+          "type": "string"
+        }
+      },
+      "title": "HarfBuzzSection",
+      "type": "object"
+    },
+    "InstanceSection": {
+      "additionalProperties": false,
+      "description": "Defines variable-font coordinates used for source inspection.",
+      "properties": {
+        "axes": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Affects the variable-font axis coordinates used to select the source instance.",
+          "title": "Axes",
+          "type": "object"
+        }
+      },
+      "title": "InstanceSection",
+      "type": "object"
+    },
+    "LayoutSection": {
+      "additionalProperties": false,
+      "description": "Defines OpenType feature and GSUB lookup layout behavior.",
+      "properties": {
+        "boundaryMode": {
+          "const": "fire-then-revert",
+          "default": "fire-then-revert",
+          "description": "Affects how substitutions are applied around protected boundaries.",
+          "title": "Boundarymode",
+          "type": "string"
+        },
+        "defaultFeature": {
+          "default": "ccmp",
+          "description": "Affects the OpenType feature used when no feature is selected explicitly.",
+          "title": "Defaultfeature",
+          "type": "string"
+        },
+        "defaultScopePolicy": {
+          "default": "fallback",
+          "description": "Affects behavior when no configured scope matches the current text.",
+          "enum": [
+            "fallback",
+            "error",
+            "no-op"
+          ],
+          "title": "Defaultscopepolicy",
+          "type": "string"
+        },
+        "maxEstimatedSubtableBytes": {
+          "default": 40960,
+          "description": "Affects the maximum estimated size allowed for a generated GSUB subtable.",
+          "exclusiveMaximum": 65536,
+          "exclusiveMinimum": 0,
+          "title": "Maxestimatedsubtablebytes",
+          "type": "integer"
+        },
+        "useExtensionLookups": {
+          "default": true,
+          "description": "Affects whether large GSUB lookups may use extension lookups.",
+          "title": "Useextensionlookups",
+          "type": "boolean"
+        }
+      },
+      "title": "LayoutSection",
+      "type": "object"
+    },
+    "LicenseSection": {
+      "additionalProperties": false,
+      "description": "Defines how licensing findings are reported or enforced.",
+      "properties": {
+        "policy": {
+          "default": "warn",
+          "description": "Affects whether license findings are ignored, reported, or treated as errors.",
+          "enum": [
+            "warn",
+            "error",
+            "ignore"
+          ],
+          "title": "Policy",
+          "type": "string"
+        }
+      },
+      "title": "LicenseSection",
+      "type": "object"
+    },
+    "MappingSection": {
+      "additionalProperties": false,
+      "description": "Defines mapping direction, conflict handling, and text normalization.",
+      "properties": {
+        "caseMode": {
+          "default": "auto",
+          "description": "Affects whether matching distinguishes or folds letter case.",
+          "enum": [
+            "auto",
+            "sensitive",
+            "fold"
+          ],
+          "title": "Casemode",
+          "type": "string"
+        },
+        "crossScript": {
+          "default": false,
+          "description": "Affects whether mappings may cross writing-system boundaries.",
+          "title": "Crossscript",
+          "type": "boolean"
+        },
+        "duplicatePolicy": {
+          "default": "error",
+          "description": "Affects how duplicate source mappings are handled.",
+          "enum": [
+            "error",
+            "first-wins",
+            "last-wins"
+          ],
+          "title": "Duplicatepolicy",
+          "type": "string"
+        },
+        "mode": {
+          "default": "involution",
+          "description": "Affects the direction and algebraic behavior of dictionary replacements.",
+          "enum": [
+            "directed",
+            "bidirectional",
+            "involution"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "normalization": {
+          "const": "NFC",
+          "default": "NFC",
+          "description": "Affects Unicode normalization applied before mapping.",
+          "title": "Normalization",
+          "type": "string"
+        },
+        "selfMapPolicy": {
+          "default": "drop-with-warning",
+          "description": "Affects how mappings with identical source and target values are handled.",
+          "enum": [
+            "error",
+            "keep",
+            "drop-with-warning"
+          ],
+          "title": "Selfmappolicy",
+          "type": "string"
+        },
+        "targetCollisionPolicy": {
+          "default": "error",
+          "description": "Affects how multiple mappings targeting one value are handled.",
+          "enum": [
+            "error",
+            "warn"
+          ],
+          "title": "Targetcollisionpolicy",
+          "type": "string"
+        }
+      },
+      "title": "MappingSection",
+      "type": "object"
+    },
+    "NeutralFaceSection": {
+      "additionalProperties": false,
+      "description": "Defines the optional neutral face generated alongside ShieldFont.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Affects whether a neutral, non-substituting face is generated.",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "family": {
+          "default": "ShieldFont Text",
+          "description": "Affects the family name exposed by the generated neutral face.",
+          "title": "Family",
+          "type": "string"
+        }
+      },
+      "title": "NeutralFaceSection",
+      "type": "object"
+    },
+    "ProjectSection": {
+      "additionalProperties": false,
+      "description": "Defines project identity, output location, and reproducibility settings.",
+      "properties": {
+        "id": {
+          "default": "shieldfont-project",
+          "description": "Affects the stable project identifier used in reports and artifacts.",
+          "title": "Id",
+          "type": "string"
+        },
+        "outputDir": {
+          "description": "Affects the directory where generated artifacts and reports are published.",
+          "format": "path",
+          "title": "Outputdir",
+          "type": "string"
+        },
+        "reproducible": {
+          "default": true,
+          "description": "Affects whether build inputs and timestamps are normalized for repeatable output.",
+          "title": "Reproducible",
+          "type": "boolean"
+        },
+        "sourceDateEpoch": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Affects the timestamp used when reproducible output is enabled.",
+          "title": "Sourcedateepoch"
+        },
+        "version": {
+          "default": "0.1.0",
+          "description": "Affects the project contract version recorded in generated metadata.",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "title": "ProjectSection",
+      "type": "object"
+    },
+    "ScopeSection": {
+      "additionalProperties": false,
+      "description": "Defines one mapping scope and the dictionaries that populate it.",
+      "properties": {
+        "dictionaries": {
+          "description": "Affects which dictionary files provide mappings for this scope.",
+          "items": {
+            "format": "path",
+            "type": "string"
+          },
+          "title": "Dictionaries",
+          "type": "array"
+        },
+        "encoder": {
+          "$ref": "#/$defs/EncoderScopeSection",
+          "description": "Affects locale and source-script matching during encoding."
+        },
+        "id": {
+          "description": "Affects the stable identifier used to select and report this scope.",
+          "title": "Id",
+          "type": "string"
+        },
+        "shaping": {
+          "$ref": "#/$defs/ShapingScopeSection",
+          "description": "Affects script and language matching during font shaping."
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ScopeSection",
+      "type": "object"
+    },
+    "ShapingScopeSection": {
+      "additionalProperties": false,
+      "description": "Defines target-side script and language matching for a scope.",
+      "properties": {
+        "defaultLanguage": {
+          "default": true,
+          "description": "Affects whether the default OpenType language system is enabled.",
+          "title": "Defaultlanguage",
+          "type": "boolean"
+        },
+        "languages": {
+          "description": "Affects which OpenType language systems activate this scope.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Languages",
+          "type": "array"
+        },
+        "openTypeScript": {
+          "default": "DFLT",
+          "description": "Affects the OpenType script tag used for this scope.",
+          "maxLength": 4,
+          "minLength": 4,
+          "title": "Opentypescript",
+          "type": "string"
+        },
+        "targetScripts": {
+          "description": "Affects which target scripts activate this scope during shaping.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Targetscripts",
+          "type": "array"
+        }
+      },
+      "title": "ShapingScopeSection",
+      "type": "object"
+    },
+    "ShieldFaceSection": {
+      "additionalProperties": false,
+      "description": "Defines the local CSS family name for the generated ShieldFont face.",
+      "properties": {
+        "family": {
+          "default": "ShieldFont",
+          "description": "Affects the local family name exposed by the generated ShieldFont face in CSS.",
+          "title": "Family",
+          "type": "string"
+        }
+      },
+      "title": "ShieldFaceSection",
+      "type": "object"
+    },
+    "SourceSection": {
+      "additionalProperties": false,
+      "description": "Defines the source font and the input constraints for the build.",
+      "properties": {
+        "allowedContainers": {
+          "description": "Affects which source and generated font containers are permitted.",
+          "items": {
+            "enum": [
+              "ttf",
+              "woff2"
+            ],
+            "type": "string"
+          },
+          "title": "Allowedcontainers",
+          "type": "array"
+        },
+        "instance": {
+          "$ref": "#/$defs/InstanceSection",
+          "description": "Affects the variable-font instance selected before inspection and shaping."
+        },
+        "path": {
+          "description": "Affects which source font is inspected and used for building.",
+          "format": "path",
+          "title": "Path",
+          "type": "string"
+        },
+        "requiredOutline": {
+          "const": "glyf",
+          "default": "glyf",
+          "description": "Affects which TrueType outline table is accepted by the build.",
+          "title": "Requiredoutline",
+          "type": "string"
+        }
+      },
+      "title": "SourceSection",
+      "type": "object"
+    },
+    "VerificationSection": {
+      "additionalProperties": false,
+      "description": "Defines the verification levels and runtimes used after building.",
+      "properties": {
+        "browsers": {
+          "description": "Affects which browser engines execute browser verification.",
+          "items": {
+            "enum": [
+              "chromium",
+              "firefox",
+              "webkit"
+            ],
+            "type": "string"
+          },
+          "title": "Browsers",
+          "type": "array"
+        },
+        "failOnWarning": {
+          "default": false,
+          "description": "Affects whether verification warnings fail the overall verification.",
+          "title": "Failonwarning",
+          "type": "boolean"
+        },
+        "harfbuzz": {
+          "$ref": "#/$defs/HarfBuzzSection",
+          "description": "Affects the HarfBuzz backend settings used by shaping checks."
+        },
+        "levels": {
+          "description": "Affects which structural, shaping, codec, and browser checks are run.",
+          "items": {
+            "enum": [
+              "structural",
+              "shaping",
+              "codec",
+              "browser"
+            ],
+            "type": "string"
+          },
+          "title": "Levels",
+          "type": "array"
+        }
+      },
+      "title": "VerificationSection",
+      "type": "object"
+    }
+  },
+  "$id": "https://shieldfont.dev/schema/shieldfont-v1.schema.json",
+  "additionalProperties": false,
+  "description": "Defines the complete ShieldFont Toolchain project configuration.",
+  "properties": {
+    "codec": {
+      "$ref": "#/$defs/CodecSection",
+      "description": "Controls generated JavaScript codec packages and their runtime scope behavior."
+    },
+    "css": {
+      "$ref": "#/$defs/CssSection",
+      "description": "Controls the generated stylesheet, font loading behavior, and CSS class names."
+    },
+    "font": {
+      "$ref": "#/$defs/FontSection",
+      "description": "Controls generated font metadata, formats, and the neutral face."
+    },
+    "layout": {
+      "$ref": "#/$defs/LayoutSection",
+      "description": "Controls OpenType feature selection and GSUB lookup layout."
+    },
+    "license": {
+      "$ref": "#/$defs/LicenseSection",
+      "description": "Controls how licensing findings affect the build and verification result."
+    },
+    "mapping": {
+      "$ref": "#/$defs/MappingSection",
+      "description": "Controls how dictionary mappings are interpreted and how conflicts are handled."
+    },
+    "project": {
+      "$ref": "#/$defs/ProjectSection",
+      "description": "Controls the project identity and output location."
+    },
+    "schema": {
+      "const": "shieldfont/v1",
+      "default": "shieldfont/v1",
+      "description": "Affects the configuration contract selected by this project file.",
+      "title": "Schema",
+      "type": "string"
+    },
+    "scopes": {
+      "description": "Defines the locale, script, language, and dictionary partitions used by mappings.",
+      "items": {
+        "$ref": "#/$defs/ScopeSection"
+      },
+      "title": "Scopes",
+      "type": "array"
+    },
+    "source": {
+      "$ref": "#/$defs/SourceSection",
+      "description": "Controls which source font is inspected and accepted by the build."
+    },
+    "verification": {
+      "$ref": "#/$defs/VerificationSection",
+      "description": "Controls structural, shaping, codec, and browser verification checks."
+    }
+  },
+  "title": "ShieldFont Toolchain configuration",
+  "type": "object"
+}
