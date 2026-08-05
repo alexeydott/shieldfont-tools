@@ -37,6 +37,7 @@ from shieldfont.application.verify import (
     verify_shaping_samples,
 )
 from shieldfont.application.web import WebActions
+from shieldfont.config.loader import load_config
 from shieldfont.domain.dictionary.models import DictionaryPolicy
 from shieldfont.domain.errors import ErrorCode, ExitCode, ShieldFontError
 from shieldfont.domain.llm_dictionary.models import ReviewStatus
@@ -454,8 +455,18 @@ def serve_command(
     """Serve the local ShieldFont GUI and safe application actions."""
 
     root = project_root.resolve()
-    generated_output = build_project(root / "shieldfont.yml")
-    typer.echo(f"Generated fresh server artifacts in {generated_output}")
+    config = load_config(root / "shieldfont.yml")
+    source_path = config.source.path
+    if not source_path.is_absolute():
+        source_path = root / source_path
+    if source_path.is_file():
+        generated_output = build_project(root / "shieldfont.yml")
+        typer.echo(f"Generated fresh server artifacts in {generated_output}")
+    else:
+        typer.echo(
+            f"Source font {source_path} is unavailable; starting the GUI without "
+            "prebuilt artifacts."
+        )
     serve(
         ServerConfig(
             project_root=root,

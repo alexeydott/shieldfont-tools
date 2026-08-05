@@ -298,6 +298,29 @@ test("workflow action buttons are accepted and dictionary falls back to server",
       json: { ...payload, defaultDictionary: "dictionaries/default.csv" },
     });
   });
+  await page.route("**/api/action", async (route) => {
+    const request = route.request().postDataJSON() as { action?: string } | null;
+    if (request?.action === "dict-read") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          path: "dictionaries/default.csv",
+          content: "source,target\nserver,entry\n",
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "ok",
+        action: request?.action || "build",
+        process: { id: "browser-action", status: "completed" },
+      }),
+    });
+  });
   await page.goto("/");
   await expect(page.locator("#app-loading")).toHaveAttribute("hidden", "", {
     timeout: 60_000,
