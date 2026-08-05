@@ -57,5 +57,4 @@ temp/
 
 # Generated dictionary exports and verification artifacts
 dictionaries/*.json
-dictionaries/*.zip
 dictionaries/verification_summary.json
