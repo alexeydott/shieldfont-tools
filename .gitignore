@@ -54,3 +54,8 @@ temp/
 *.swo
 *.bak
 *.log
+
+# Generated dictionary exports and verification artifacts
+dictionaries/*.json
+dictionaries/*.zip
+dictionaries/verification_summary.json

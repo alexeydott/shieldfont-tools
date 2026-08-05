@@ -438,6 +438,7 @@ import { parseDocument } from "/vendor/yaml/browser/index.js";
       payload.font = selectedValue("#font-path");
     } else if (["build", "css-build"].includes(action)) {
       payload.sourceFont = selectedValue("#font-path");
+      payload.dictionaryPath = selectedValue("#default-dictionary-path");
     } else if (["dict-validate", "dict-normalize"].includes(action)) {
       payload.path = selectedValue("#default-dictionary-path");
     }
@@ -1803,18 +1804,25 @@ import { parseDocument } from "/vendor/yaml/browser/index.js";
   const projectEditorReady = createProjectEditor();
   Promise.all([
     loadStatus(),
-    loadFiles().then(async () => {
-      if (!selectedValue("#font-path")) {
-        throw new Error("No source font is available for comparison.");
-      }
-      compareButton.disabled = false;
-      return loadDictionary();
-    }).catch((error) => {
-      showError(dictionaryStatus, error);
-      console.error("[FIX] Dictionary load failed", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }),
+    loadFiles()
+      .then(() => {
+        if (!selectedValue("#font-path")) {
+          throw new Error("No source font is available for comparison.");
+        }
+        compareButton.disabled = false;
+      })
+      .catch((error) => {
+        showError(status, error);
+        console.error("[FIX] Project file load failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      })
+      .finally(() => loadDictionary().catch((error) => {
+        showError(dictionaryStatus, error);
+        console.error("[FIX] Dictionary load failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      })),
     projectEditorReady.then(() => loadProject()).catch((error) => {
         showError(projectStatus, error);
         console.error("[FIX] Project YAML load failed", {

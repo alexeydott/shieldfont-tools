@@ -131,12 +131,19 @@ class WebActions:
         if self._config_path().is_file():
             self._load_config()
         selected_source = self._selected_source_path(payload)
+        selected_dictionary = self._selected_dictionary_path(payload)
         build_options: dict[str, Any] = {}
         if selected_source is not None:
             build_options["source_path"] = selected_source
             LOGGER.info(
                 "[FIX] Web build source font selected",
                 extra={"path": self._relative_or_name(selected_source)},
+            )
+        if selected_dictionary is not None:
+            build_options["dictionary_path"] = selected_dictionary
+            LOGGER.info(
+                "[FIX] Web build dictionary selected",
+                extra={"path": self._relative_or_name(selected_dictionary)},
             )
         if "outputDir" in payload:
             output = build_project(
@@ -461,6 +468,7 @@ class WebActions:
     def _css_build(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         config = self._load_config()
         selected_source = self._selected_source_path(payload)
+        selected_dictionary = self._selected_dictionary_path(payload)
         if selected_source is not None:
             try:
                 self._assert_css_source_matches(
@@ -475,10 +483,15 @@ class WebActions:
                         "outputDir": str(config.project.output_dir),
                     },
                 )
+                rebuild_options: dict[str, Any] = {
+                    "output_dir": config.project.output_dir,
+                    "source_path": selected_source,
+                }
+                if selected_dictionary is not None:
+                    rebuild_options["dictionary_path"] = selected_dictionary
                 build_project(
                     self._config_path(),
-                    output_dir=config.project.output_dir,
-                    source_path=selected_source,
+                    **rebuild_options,
                 )
                 self._assert_css_source_matches(
                     config.project.output_dir,
@@ -568,6 +581,21 @@ class WebActions:
         if "sourceFont" not in payload:
             return None
         return self._font_payload_path(payload, "sourceFont")
+
+    def _selected_dictionary_path(
+        self,
+        payload: Mapping[str, Any],
+    ) -> Path | None:
+        if "dictionaryPath" not in payload:
+            return None
+        path = self._payload_path(
+            payload,
+            "dictionaryPath",
+            self._default_dictionary_path(),
+            must_exist=True,
+        )
+        self._assert_dictionary_path(path)
+        return path
 
     def _assert_css_source_matches(
         self,

@@ -80,11 +80,15 @@ def build_project(
     *,
     output_dir: Path | None = None,
     source_path: Path | None = None,
+    dictionary_path: Path | None = None,
 ) -> Path:
     """Build available stages into a temporary tree and publish atomically."""
 
     config = load_config(config_path)
     selected_source_path = (source_path or config.source.path).resolve()
+    selected_dictionary_path = (
+        dictionary_path.resolve() if dictionary_path is not None else None
+    )
     destination = (output_dir or config.project.output_dir).resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(
@@ -98,8 +102,12 @@ def build_project(
         dictionaries = {
             scope.id: [
                 entry
-                for dictionary_path in scope.dictionaries
-                for entry in read_csv_dictionary(dictionary_path)
+                for path in (
+                    [selected_dictionary_path]
+                    if selected_dictionary_path is not None
+                    else scope.dictionaries
+                )
+                for entry in read_csv_dictionary(path)
             ]
             for scope in config.scopes
         }

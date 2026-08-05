@@ -170,6 +170,46 @@ def test_web_actions_persists_the_server_default_dictionary(
     )
 
 
+def test_web_actions_build_uses_selected_dictionary(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "shieldfont.yml").write_text(
+        "schema: shieldfont/v1\n",
+        encoding="utf-8",
+    )
+    selected = tmp_path / "dictionaries" / "ru-alpha.csv"
+    selected.parent.mkdir(parents=True)
+    selected.write_text("source,target\nleft,right\n", encoding="utf-8")
+    captured: dict[str, object] = {}
+
+    def fake_build_project(
+        config_path: Path,
+        *,
+        output_dir: Path | None = None,
+        source_path: Path | None = None,
+        dictionary_path: Path | None = None,
+    ) -> Path:
+        captured.update(
+            {
+                "config": config_path,
+                "output": output_dir,
+                "source": source_path,
+                "dictionary": dictionary_path,
+            }
+        )
+        return tmp_path / "dist"
+
+    monkeypatch.setattr(web, "build_project", fake_build_project)
+
+    WebActions(tmp_path)(
+        "build",
+        {"dictionaryPath": "dictionaries/ru-alpha.csv"},
+    )
+
+    assert captured["dictionary"] == selected.resolve()
+
+
 def test_web_actions_reads_and_saves_project_yaml(tmp_path: Path) -> None:
     project = tmp_path / "shieldfont.yml"
     project.write_text("schema: shieldfont/v1\n", encoding="utf-8")

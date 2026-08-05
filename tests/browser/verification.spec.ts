@@ -165,6 +165,34 @@ test("dictionary editor restores client cache and supports default/import/export
   expect(download.suggestedFilename()).toBe("default.csv");
 });
 
+test("selecting a dictionary loads the selected file", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.clear();
+  });
+  await page.goto("/");
+  await expect(page.locator("#default-dictionary-path option[value='dictionaries/ru-alpha.csv']"))
+    .toHaveCount(1);
+
+  await page.locator("#default-dictionary-path").selectOption("dictionaries/ru-alpha.csv");
+
+  await expect(page.locator("#default-dictionary-path")).toHaveValue(
+    "dictionaries/ru-alpha.csv",
+  );
+  await expect(page.locator("#dictionary-editor")).toHaveValue(
+    /source,target\nпроблема,нога/,
+  );
+  await expect(page.locator("#dictionary-editor")).toHaveAttribute(
+    "data-path",
+    "dictionaries/ru-alpha.csv",
+  );
+
+  await page.locator("#default-dictionary-path").selectOption("dictionaries/default.csv");
+  await expect(page.locator("#dictionary-editor")).toHaveAttribute(
+    "data-path",
+    "dictionaries/default.csv",
+  );
+});
+
 test("workflow action buttons are accepted and dictionary falls back to server", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#dictionary-editor")).toHaveValue(/source,target/);
