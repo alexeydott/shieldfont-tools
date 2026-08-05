@@ -1,5 +1,8 @@
 """JSON Schema generation for the packaged configuration contract."""
 
+# Schema descriptions intentionally preserve readable prose on single lines.
+# ruff: noqa: E501
+
 from __future__ import annotations
 
 import json

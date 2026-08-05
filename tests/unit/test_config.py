@@ -107,7 +107,10 @@ def test_schema_describes_every_configuration_element() -> None:
     )
     assert (
         schema["$defs"]["ShieldFaceSection"]["properties"]["family"]["description"]
-        == "Affects the local family name exposed by the generated ShieldFont face in CSS."
+        == (
+            "Affects the local family name exposed by the generated "
+            "ShieldFont face in CSS."
+        )
     )
 
 

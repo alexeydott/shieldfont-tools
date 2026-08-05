@@ -596,10 +596,18 @@ class _RequestHandler(BaseHTTPRequestHandler):
 
     def _serve_monaco_worker(self, worker_name: str) -> HTTPStatus:
         if worker_name == "yaml":
+            static_root = self.server.config.static_root
+            if static_root is None:
+                self._send_error(
+                    HTTPStatus.NOT_FOUND,
+                    ErrorCode.INVALID_INPUT.value,
+                    "Monaco YAML worker not found",
+                )
+                return HTTPStatus.NOT_FOUND
             candidate = (
-                self.server.config.static_root / "vendor/monaco-yaml.worker.js"
+                static_root / "vendor/monaco-yaml.worker.js"
             ).resolve()
-            static_root = self.server.config.static_root.resolve()
+            static_root = static_root.resolve()
             if not _is_within(candidate, static_root) or not candidate.is_file():
                 self._send_error(
                     HTTPStatus.NOT_FOUND,
