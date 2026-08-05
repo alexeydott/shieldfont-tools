@@ -401,10 +401,25 @@ test("dictionary loads from the server when the cached value is empty", async ({
 });
 
 test("Refresh preserves current inputs and validates compact locales", async ({ page }) => {
+  const fontPath = "deps/shieldfont/packages/font/optik-a.woff2";
+  await page.route("**/api/files", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        files: [
+          { path: fontPath, kind: "font", size: 1 },
+          { path: "dictionaries/default.csv", kind: "dictionary", size: 1 },
+          { path: "dictionaries/ru-alpha.csv", kind: "dictionary", size: 1 },
+          { path: "dictionaries/ru-beta.csv", kind: "dictionary", size: 1 },
+        ],
+      }),
+    });
+  });
   await page.goto("/");
   await expect.poll(() => page.locator("#font-path").inputValue()).not.toBe("");
   await expect.poll(() => page.locator("#default-dictionary-path").inputValue()).not.toBe("");
-  const fontPath = await page.locator("#font-path").inputValue();
+  const selectedFontPath = await page.locator("#font-path").inputValue();
   const dictionaryPath = await page.locator("#default-dictionary-path").inputValue();
   await page.locator("#source-locale").fill("ru");
   await page.locator("#target-locale").fill("en");
@@ -418,7 +433,7 @@ test("Refresh preserves current inputs and validates compact locales", async ({ 
   await page.locator("#source-locale").fill("ru");
   await page.locator("#refresh-files").click();
 
-  await expect(page.locator("#font-path")).toHaveValue(fontPath);
+  await expect(page.locator("#font-path")).toHaveValue(selectedFontPath);
   await expect(page.locator("#default-dictionary-path")).toHaveValue(dictionaryPath);
   await expect(page.locator("#source-locale")).toHaveValue("ru");
   await expect(page.locator("#target-locale")).toHaveValue("en");
