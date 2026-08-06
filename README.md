@@ -2,7 +2,7 @@
 
 ![|center](example.png)
 
-ShieldFont Toolchain is an offline-first toolkit for building multilingual
+[ShieldFont](https://shieldfont.org/white-paper/) Toolchain is an offline-first toolkit for building multilingual
 TrueType fonts with deterministic OpenType substitutions. It combines font
 normalization, CSV dictionary processing, GSUB feature generation, CSS/codec
 output, verification, and a local web GUI.
