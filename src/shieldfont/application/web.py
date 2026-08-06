@@ -11,6 +11,8 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any, cast
 
+import yaml
+
 from shieldfont.application.build import build_project
 from shieldfont.application.css import CssBuildOptions, CssFace, build_css
 from shieldfont.application.dictionary import (
@@ -31,6 +33,8 @@ from shieldfont.infrastructure.logging import log_event
 
 LOGGER = logging.getLogger("shieldfont.web.application")
 _UNICODE_WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
+_REDACTED_SECRET = "<redacted>"
+_PROTECTION_SECRET_FIELDS = ("seed", "documentNonce", "tenantId")
 
 
 def _encode_test_text(
@@ -178,6 +182,9 @@ class WebActions:
                 else None,
                 "checksums": "SHA256SUMS"
                 if (output / "SHA256SUMS").is_file()
+                else None,
+                "canonicalManifest": "artifacts/build-manifest.json"
+                if (output / "artifacts" / "build-manifest.json").is_file()
                 else None,
             }
             result["artifacts"] = {
@@ -401,7 +408,10 @@ class WebActions:
                 stage="project.read",
                 details={"file": str(path), "reason": str(error)},
             ) from error
-        return {"path": self._relative_or_name(path), "content": content}
+        return {
+            "path": self._relative_or_name(path),
+            "content": self._redact_project_content(content),
+        }
 
     def _project_save(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         content = payload.get("content")
@@ -413,6 +423,19 @@ class WebActions:
                 stage="project.write",
             )
         path = self._project_payload_path(payload)
+        existing = ""
+        if path.is_file():
+            try:
+                existing = path.read_text(encoding="utf-8-sig")
+            except OSError as error:
+                raise ShieldFontError(
+                    "Unable to read existing project YAML",
+                    code=ErrorCode.CONFIG_INVALID,
+                    exit_code=ExitCode.INVALID_INPUT,
+                    stage="project.write",
+                    details={"file": str(path), "reason": str(error)},
+                ) from error
+        content = self._restore_project_secrets(content, existing)
         try:
             path.write_text(content, encoding="utf-8", newline="")
         except OSError as error:
@@ -424,13 +447,93 @@ class WebActions:
                 details={"file": str(path), "reason": str(error)},
             ) from error
         LOGGER.info("[FIX] Project YAML saved", extra={"path": str(path)})
-        return {"path": self._relative_or_name(path), "content": content}
+        return {
+            "path": self._relative_or_name(path),
+            "content": self._redact_project_content(content),
+        }
+
+    @staticmethod
+    def _project_mapping(content: str) -> dict[str, Any] | None:
+        try:
+            value = yaml.safe_load(content)
+        except yaml.YAMLError:
+            return None
+        return value if isinstance(value, dict) else None
+
+    @classmethod
+    def _redact_project_content(cls, content: str) -> str:
+        data = cls._project_mapping(content)
+        if data is None:
+            return content
+        protection = data.get("protection")
+        if not isinstance(protection, dict):
+            return content
+        secrets = [
+            value
+            for key in _PROTECTION_SECRET_FIELDS
+            if isinstance((value := protection.get(key)), str) and value
+        ]
+        redacted = content
+        for secret in sorted(secrets, key=len, reverse=True):
+            redacted = redacted.replace(secret, _REDACTED_SECRET)
+        if any(secret in redacted for secret in secrets):
+            for key in _PROTECTION_SECRET_FIELDS:
+                if key in protection:
+                    protection[key] = _REDACTED_SECRET
+            return yaml.safe_dump(
+                data,
+                allow_unicode=True,
+                default_flow_style=False,
+                sort_keys=False,
+            )
+        return redacted
+
+    @classmethod
+    def _restore_project_secrets(cls, content: str, existing: str) -> str:
+        submitted = cls._project_mapping(content)
+        current = cls._project_mapping(existing)
+        if submitted is None or current is None:
+            return content
+        submitted_protection = submitted.get("protection")
+        current_protection = current.get("protection")
+        if not isinstance(submitted_protection, dict) or not isinstance(
+            current_protection,
+            dict,
+        ):
+            return content
+        restored = False
+        for key in _PROTECTION_SECRET_FIELDS:
+            if submitted_protection.get(key) != _REDACTED_SECRET:
+                continue
+            if key in current_protection:
+                submitted_protection[key] = current_protection[key]
+            else:
+                submitted_protection.pop(key, None)
+            restored = True
+        if not restored:
+            return content
+        return yaml.safe_dump(
+            submitted,
+            allow_unicode=True,
+            default_flow_style=False,
+            sort_keys=False,
+        )
 
     @staticmethod
     def _assert_dictionary_path(path: Path) -> None:
         if path.suffix.lower() != ".csv":
             raise ShieldFontError(
                 "Dictionary path must use the .csv extension",
+                code=ErrorCode.INVALID_INPUT,
+                exit_code=ExitCode.INVALID_INPUT,
+                stage="dictionary.path",
+            )
+
+    @staticmethod
+    def _assert_build_dictionary_path(path: Path) -> None:
+        if path.suffix.lower() not in {".csv", ".json"}:
+            raise ShieldFontError(
+                "Build dictionary path must use .csv or .json",
                 code=ErrorCode.INVALID_INPUT,
                 exit_code=ExitCode.INVALID_INPUT,
                 stage="dictionary.path",
@@ -594,7 +697,7 @@ class WebActions:
             self._default_dictionary_path(),
             must_exist=True,
         )
-        self._assert_dictionary_path(path)
+        self._assert_build_dictionary_path(path)
         return path
 
     def _assert_css_source_matches(
@@ -676,7 +779,7 @@ class WebActions:
                 stage="web.config.update",
             ) from error
         self._config_path().write_text(
-            dump_resolved_config(updated),
+            dump_resolved_config(updated, reveal_secrets=True),
             encoding="utf-8",
         )
         log_event(
@@ -896,8 +999,13 @@ class WebActions:
     def _redact_config(value: Any, *, key: str = "") -> None:
         if isinstance(value, dict):
             for child_key in list(value):
-                if child_key.lower() == "apikey":
-                    value[child_key] = "<environment-reference>"
+                if child_key.lower() in {
+                    "apikey",
+                    "seed",
+                    "documentnonce",
+                    "tenantid",
+                }:
+                    value[child_key] = "<redacted>"
                 else:
                     WebActions._redact_config(value[child_key], key=child_key)
         elif isinstance(value, list):
@@ -915,7 +1023,13 @@ class WebActions:
             }
         if isinstance(value, list):
             return [self._relativize_config(item, key=key) for item in value]
-        if key in {"path", "file", "outputDir", "dictionaries"} and isinstance(
+        if key in {
+            "path",
+            "file",
+            "outputDir",
+            "dictionaries",
+            "inventory",
+        } and isinstance(
             value,
             str,
         ):
@@ -964,6 +1078,7 @@ class WebActions:
                 "file",
                 "outputDir",
                 "dictionaries",
+                "inventory",
             }:
                 values = value if isinstance(value, list) else [value]
                 for item in values:
@@ -1089,10 +1204,17 @@ _MUTABLE_CONFIG_FIELDS = frozenset(
         "font.family",
         "font.description",
         "layout.maxEstimatedSubtableBytes",
+        "layout.gsubOptimization",
         "mapping.mode",
         "mapping.duplicatePolicy",
         "mapping.targetCollisionPolicy",
         "mapping.selfMapPolicy",
+        "protection.profile",
+        "protection.mappingContract",
+        "protection.inventory",
+        "protection.reserveAliases",
+        "protection.reserve",
+        "protection.scanPublicArtifacts",
         "css.file",
         "css.assetBaseUrl",
         "css.fontDisplay",

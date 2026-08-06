@@ -25,7 +25,8 @@ shieldfont-generate run shieldfont.yml `
 The profile is loaded first, then supplied overrides take precedence. Relative
 override paths are resolved from the profile directory. Supported overrides are
 `--output-dir`, `--source`, `--dictionary`, `--family`, `--postfix`, `--project-id`,
-`--project-version`, `--font-display`, and `--embed-font/--no-embed-font`.
+`--project-version`, `--font-display`, `--embed-font/--no-embed-font`, and the
+document-bound options listed below.
 `--postfix` derives the generated family from the original source-font family
 after normalization and appends the supplied suffix, for example
 `--postfix _ru`. Use `--family` when an exact family name is required; do not
@@ -33,6 +34,20 @@ combine `--family` and `--postfix`.
 `--strict/--non-strict` controls unknown profile-field validation. The command
 uses the same atomic build pipeline as `shieldfont build` and performs no
 network or LLM requests.
+
+Document-bound builds also support:
+
+- `--protection-profile compatibility|document-bound`
+- `--mapping-contract shieldfont.mapping.v1|shieldfont.mapping.v2`
+- `--mapping-seed`, `--document-nonce`, and `--tenant-id` private inputs
+- repeatable `--inventory PATH` and `--reserve-aliases N`
+- `--scan-public-artifacts/--no-scan-public-artifacts`
+- `--gsub-optimization auto|format2|format3`
+
+The CLI never prints raw seed, nonce, or tenant values. A document-bound build
+requires reproducible TTF and WOFF2 output and one grouped JSON mapping contract
+per scope. It emits canonical public/private/verification tiers under
+`artifacts/`; publish only the reviewed public tier.
 
 ## Portable executable examples
 
@@ -70,6 +85,11 @@ Node.js on the target machine:
 ```powershell
 .\build\shieldfont-generate.exe serve --project-root . --port 8765
 ```
+
+If the selected project root does not contain `shieldfont.yml`, `serve`
+creates the default project profile, directories, dictionary, and demo corpus
+before starting the GUI. When running from the `build` directory, point back to
+the repository with `--project-root ..`.
 
 The bundled web assets and JavaScript dependencies are extracted to the
 executable's local runtime directory when the server starts. The server binds

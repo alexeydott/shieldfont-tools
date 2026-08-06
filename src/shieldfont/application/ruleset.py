@@ -32,6 +32,8 @@ def _mapping_policy(config: ShieldFontConfig) -> DictionaryPolicy:
 def build_ruleset_from_config(
     config: ShieldFontConfig,
     dictionaries: Mapping[str, Iterable[DictionaryEntry]],
+    *,
+    mapping_contract: Mapping[str, object] | None = None,
 ) -> NormalizedRuleset:
     """Normalize configured dictionaries and bind them to canonical scopes."""
 
@@ -69,4 +71,4 @@ def build_ruleset_from_config(
                 dictionary=normalized,
             )
         )
-    return build_ruleset(records)
+    return build_ruleset(records, mapping_contract=mapping_contract)

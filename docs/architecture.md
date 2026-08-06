@@ -35,9 +35,14 @@ details.
 1. Load and validate `shieldfont/v1` configuration.
 2. Inspect and normalize a TrueType `glyf` source font.
 3. Normalize dictionaries and construct one canonical ruleset.
-4. Generate glyphs, GSUB features, CSS, and codec artifacts.
-5. Verify structure, layout references, hashes, shaping, and security metadata.
-6. Publish the staged output atomically.
+4. Optionally select grouped aliases against an offline document inventory and
+   derive an opaque bundle/cache identity.
+5. Generate glyphs, GSUB features, CSS, and codec artifacts. GSUB Format 2 is
+   estimated but falls back to validated deterministic Format 3.
+6. For document-bound builds, emit canonical public/private/verification tiers
+   and scan the public tier for privacy metadata.
+7. Verify structure, layout references, hashes, shaping, and security metadata.
+8. Publish the staged output atomically.
 
 ## See Also
 

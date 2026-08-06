@@ -21,6 +21,7 @@ class BuildManifest:
     artifacts: Sequence[Mapping[str, object]]
     verification: Mapping[str, object]
     security: Mapping[str, object]
+    profile: Mapping[str, object] | None = None
     build_id: str = ""
 
     def to_dict(self, *, include_build_id: bool = True) -> dict[str, object]:
@@ -36,6 +37,8 @@ class BuildManifest:
             "verification": dict(self.verification),
             "security": dict(self.security),
         }
+        if self.profile is not None:
+            payload["profile"] = dict(self.profile)
         if include_build_id:
             payload["buildId"] = self.build_id
         return payload
@@ -64,6 +67,7 @@ class BuildManifest:
         artifacts: Sequence[Mapping[str, object]] = (),
         verification: Mapping[str, object] | None = None,
         security: Mapping[str, object] | None = None,
+        profile: Mapping[str, object] | None = None,
     ) -> BuildManifest:
         draft = cls(
             project_id=project_id,
@@ -79,6 +83,7 @@ class BuildManifest:
                 "browserDecoderIncluded": False,
                 "mappingEmbedded": False,
             },
+            profile=profile,
         )
         serialized = json.dumps(
             draft.to_dict(include_build_id=False),
@@ -96,5 +101,6 @@ class BuildManifest:
             artifacts=draft.artifacts,
             verification=draft.verification,
             security=draft.security,
+            profile=draft.profile,
             build_id=f"sha256:{hashlib.sha256(serialized).hexdigest()}",
         )

@@ -1,0 +1,59 @@
+# Document-bound profile: selects mapping groups from the document inventory.
+# Use this profile when each document/tenant should receive a deterministic,
+# separately identifiable mapping bundle while exact mapping data stays private.
+schema: shieldfont/v1
+# Project identity and deterministic publication settings.
+project:
+  # Stable bundle owner/project identifier.
+  id: example-document-bound
+  # Example release version recorded in manifests.
+  version: 2.0.0
+  # Output directory containing the normal build and canonical artifact bundle.
+  outputDir: ../../dist/examples/document-bound
+  # Required for reproducible document-bound identities.
+  reproducible: true
+  # Fixed timestamp prevents metadata drift between repeated builds.
+  sourceDateEpoch: 0
+# Source font used for both the shielded and neutral faces.
+source:
+  # Replace this path when using a different TrueType glyf source.
+  path: ../../.fonts/Source.ttf
+# Generated font metadata and delivery formats.
+font:
+  # Family name for this example's generated faces.
+  family: ShieldFont Document Example
+  # Document-bound bundles require both TTF and WOFF2.
+  outputFormats: [ttf, woff2]
+# GSUB optimization policy. "auto" records estimates and uses the safe fallback.
+layout:
+  gsubOptimization: auto
+# One scope consumes one grouped mapping v2 JSON contract.
+scopes:
+  - id: default
+    # The JSON contract contains grammar groups and ordered alias candidates.
+    dictionaries:
+      - ../mappings/document-bound.json
+# Keep mapping direction explicit for the canonical ruleset.
+mapping:
+  mode: directed
+# Document-bound selection and privacy controls.
+protection:
+  # Select only groups referenced by the configured inventory.
+  profile: document-bound
+  # Enable grouped aliases, deterministic selection, and v2 metadata.
+  mappingContract: shieldfont.mapping.v2
+  # Demo value only; keep the real seed in restricted build configuration.
+  seed: demo-private-build-seed
+  # Demo per-document nonce; only its digest is published.
+  documentNonce: demo-document-2026-08-06
+  # Demo tenant/cache partition; never publish the raw value.
+  tenantId: demo-private-tenant
+  # UTF-8 content inventory used to select relevant mapping groups.
+  inventory:
+    - ../content/article.txt
+  # No additional future-coverage entries in this basic example.
+  reserveAliases: 0
+  # Explicit reserve entries can be listed here when needed.
+  reserve: []
+  # Fail closed if public artifacts contain private or unstable metadata.
+  scanPublicArtifacts: true

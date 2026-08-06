@@ -9,6 +9,7 @@
 # layout: OpenType feature and lookup-size policies used during font building.
 # scopes: per-script processing scopes, shaping settings, and dictionaries.
 # mapping: dictionary conflict, case, normalization, and cross-script policies.
+# protection: optional v2 aliases, document subsets, identities, and artifact tiers.
 # css: generated CSS path, URL/font-display behavior, and optional embedding.
 # codec: JavaScript codec package formats and whether browser assets are built.
 # verification: enabled verification levels, HarfBuzz, browsers, and warnings.
@@ -74,6 +75,8 @@ layout:
   maxEstimatedSubtableBytes: 40960
   # Permit extension lookups when ordinary lookup space is insufficient.
   useExtensionLookups: true
+  # Evaluate class-oriented Format 2 but retain Format 3 until shaping validates it.
+  gsubOptimization: auto
   # Behavior when text does not match a configured scope.
   defaultScopePolicy: fallback
 # Independent dictionary and shaping pipelines for scripts/locales.
@@ -114,6 +117,22 @@ mapping:
   caseMode: auto
   # Unicode normalization applied before matching.
   normalization: NFC
+# Additive compatibility or document-bound bundle behavior.
+protection:
+  # compatibility preserves the existing shieldfont/v1 build and artifact layout.
+  profile: compatibility
+  # v1 accepts existing CSV mappings; v2 accepts one grouped JSON contract per scope.
+  mappingContract: shieldfont.mapping.v1
+  # Private v2 seed/nonce/tenant values are optional and omitted from public metadata.
+  # seed:
+  # documentNonce:
+  # tenantId:
+  # Document-bound inventory inputs and bounded future-coverage reserves.
+  inventory: []
+  reserveAliases: 0
+  reserve: []
+  # Compatibility builds leave the public-tier scan off; document-bound builds run it.
+  scanPublicArtifacts: false
 # CSS delivery settings generated beside the font assets.
 css:
   # Configured CSS filename; the build currently publishes shieldfont.css.

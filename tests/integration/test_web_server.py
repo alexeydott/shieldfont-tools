@@ -74,6 +74,20 @@ def test_web_server_exposes_safe_status_action_and_static_routes(
         assert "project-read" in payload["actions"]
         assert "project-save" in payload["actions"]
 
+        connection.request("GET", "/api/config/schema")
+        response = connection.getresponse()
+        payload = json.loads(response.read())
+        assert response.status == 200
+        protection = payload["$defs"]["ProtectionSection"]["properties"]
+        assert protection["profile"]["default"] == "compatibility"
+        assert protection["documentNonce"]["anyOf"][0]["writeOnly"] is True
+        assert (
+            payload["$defs"]["LayoutSection"]["properties"]["gsubOptimization"][
+                "default"
+            ]
+            == "auto"
+        )
+
         connection.request(
             "POST",
             "/api/action",

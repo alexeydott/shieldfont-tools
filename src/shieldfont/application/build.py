@@ -26,7 +26,16 @@ from shieldfont.domain.font_naming import (
     output_post_script_name,
 )
 from shieldfont.domain.manifest import BuildManifest
+from shieldfont.domain.protection import derive_bundle_id, mapping_by_scope
 from shieldfont.domain.ruleset import ScopeRecord
+from shieldfont.infrastructure.artifacts import (
+    apply_reproducible_font_metadata,
+    emit_canonical_artifacts,
+)
+from shieldfont.infrastructure.dictionary.contract_reader import (
+    read_document_inventory,
+    read_versioned_mapping,
+)
 from shieldfont.infrastructure.dictionary.csv_reader import read_csv_dictionary
 from shieldfont.infrastructure.font.compile import (
     add_fire_then_revert_context,
@@ -101,19 +110,71 @@ def build_project(
     )
     try:
         inspection = inspect_font(selected_source_path, strict=True)
-        dictionaries = {
-            scope.id: [
-                entry
-                for path in (
+        protection = config.protection
+        document_bound = protection.profile == "document-bound"
+        inventory = read_document_inventory(protection.inventory)
+        mapping_contract: dict[str, object] | None = None
+        if protection.mapping_contract == "shieldfont.mapping.v2":
+            contract_scopes: dict[str, object] = {}
+            dictionaries = {}
+            seed = (
+                protection.seed.get_secret_value()
+                if protection.seed is not None
+                else None
+            )
+            nonce = (
+                protection.document_nonce.get_secret_value()
+                if protection.document_nonce is not None
+                else None
+            )
+            for config_scope in config.scopes:
+                paths = (
                     [selected_dictionary_path]
                     if selected_dictionary_path is not None
-                    else scope.dictionaries
+                    else config_scope.dictionaries
                 )
-                for entry in read_csv_dictionary(path)
-            ]
-            for scope in config.scopes
-        }
-        ruleset = build_ruleset_from_config(config, dictionaries)
+                if len(paths) != 1 or paths[0].suffix.lower() != ".json":
+                    raise ShieldFontError(
+                        "Versioned mapping scopes require exactly one JSON contract",
+                        code=ErrorCode.CONFIG_INVALID,
+                        exit_code=ExitCode.INVALID_INPUT,
+                        stage="mapping.contract",
+                        details={"scope": config_scope.id, "paths": len(paths)},
+                    )
+                selection = read_versioned_mapping(
+                    paths[0],
+                    seed_override=seed,
+                    nonce=nonce,
+                    inventory=inventory,
+                    document_bound=document_bound,
+                    reserve_aliases=protection.reserve_aliases,
+                    reserve=protection.reserve,
+                )
+                dictionaries[config_scope.id] = list(selection.entries)
+                contract_scopes[config_scope.id] = dict(selection.metadata)
+            mapping_contract = {
+                "schema": "shieldfont.mapping.v2",
+                "profile": "versioned-groups",
+                "scopes": contract_scopes,
+            }
+        else:
+            dictionaries = {
+                config_scope.id: [
+                    entry
+                    for path in (
+                        [selected_dictionary_path]
+                        if selected_dictionary_path is not None
+                        else config_scope.dictionaries
+                    )
+                    for entry in read_csv_dictionary(path)
+                ]
+                for config_scope in config.scopes
+            }
+        ruleset = build_ruleset_from_config(
+            config,
+            dictionaries,
+            mapping_contract=mapping_contract,
+        )
         ruleset_path = staging / "ruleset.json"
         ruleset_path.write_text(ruleset.to_json(), encoding="utf-8")
         normalized_path = staging / "normalized.ttf"
@@ -133,7 +194,7 @@ def build_project(
         feature_dir = staging / "features"
         feature_plans: list[str] = []
         feature_paths: list[Path] = []
-        generated_glyphs: set[str] = set()
+        scope_generated_glyphs: list[set[str]] = []
         for scope in ruleset.scopes:
             generated: dict[str, str] = {}
 
@@ -197,7 +258,7 @@ def build_project(
                 stem=prefix,
                 lookup_prefix=f"sf_{prefix}",
             )
-            generated_glyphs.update(generated.values())
+            scope_generated_glyphs.append(set(generated.values()))
             feature_paths.append(artifacts["fea"])
             feature_plans.append(artifacts["fea"].read_text(encoding="utf-8"))
         glyph_builder.finalize()
@@ -243,13 +304,31 @@ def build_project(
             encoding="utf-8",
         )
         compile_feature_source(shield_font, combined_feature_path)
-        add_fire_then_revert_context(
-            shield_font,
-            lookup_indices=(0, 1, 2, 3),
-            generated_glyphs=generated_glyphs,
-        )
+        gsub_diagnostics = [
+            {
+                "scope": scope.scope_id,
+                **add_fire_then_revert_context(
+                    shield_font,
+                    lookup_indices=(
+                        index * 4,
+                        index * 4 + 1,
+                        index * 4 + 2,
+                        index * 4 + 3,
+                    ),
+                    generated_glyphs=scope_generated_glyphs[index],
+                    optimization=config.layout.gsub_optimization,
+                ),
+            }
+            for index, scope in enumerate(ruleset.scopes)
+        ]
+        controlled_epoch = config.project.source_date_epoch or 0
+        if config.project.reproducible:
+            apply_reproducible_font_metadata(shield_font, controlled_epoch)
+            apply_reproducible_font_metadata(neutral_font, controlled_epoch)
         font_dir = staging / "fonts"
         font_artifacts: list[dict[str, str]] = []
+        shield_font_paths: dict[str, Path] = {}
+        public_font_paths: dict[str, Path] = {}
         for extension in config.font.output_formats:
             shield_path = font_dir / output_font_filename(config.font.family, extension)
             neutral_path = font_dir / output_font_filename(
@@ -257,8 +336,13 @@ def build_project(
                 extension,
             )
             serialize_true_type(shield_font, shield_path)
+            shield_font_paths[extension] = shield_path
+            if extension == "woff2":
+                public_font_paths[shield_path.name] = shield_path
             if config.font.neutral_face.enabled:
                 serialize_true_type(neutral_font, neutral_path)
+                if extension == "woff2":
+                    public_font_paths[neutral_path.name] = neutral_path
             font_artifacts.append(
                 {
                     "path": str(shield_path.relative_to(staging).as_posix()),
@@ -296,6 +380,73 @@ def build_project(
             asset_root=font_dir,
             output_path=staging / "shieldfont.css",
         )
+        bundle_id = ""
+        canonical_manifest: dict[str, object] | None = None
+        published_ruleset_path = ruleset_path
+        if document_bound:
+            nonce = (
+                protection.document_nonce.get_secret_value()
+                if protection.document_nonce is not None
+                else None
+            )
+            tenant_id = (
+                protection.tenant_id.get_secret_value()
+                if protection.tenant_id is not None
+                else None
+            )
+            generated_font_hash = hashlib.sha256(
+                json.dumps(
+                    {
+                        name: _sha256(path)
+                        for name, path in sorted(public_font_paths.items())
+                    },
+                    ensure_ascii=True,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ).encode("utf-8")
+            ).hexdigest()
+            bundle_id = derive_bundle_id(
+                inventory=inventory,
+                mapping_hash=ruleset.ruleset_hash,
+                font_hash=generated_font_hash,
+                nonce=nonce,
+                tenant_id=tenant_id,
+                compatibility={
+                    "profile": protection.profile,
+                    "reserveAliases": protection.reserve_aliases,
+                    "reserveDigest": hashlib.sha256(
+                        json.dumps(
+                            sorted(protection.reserve),
+                            ensure_ascii=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest()[:16],
+                    "gsubOptimization": config.layout.gsub_optimization,
+                },
+            )
+            canonical_manifest = emit_canonical_artifacts(
+                staging / "artifacts",
+                mappings=mapping_by_scope(ruleset.scopes),
+                audit_font=shield_font_paths["ttf"],
+                web_font=shield_font_paths["woff2"],
+                public_fonts=public_font_paths,
+                private_files={
+                    path.name: path
+                    for path in sorted(feature_dir.glob("*.layout.json"))
+                },
+                css=css_artifacts["css"],
+                ruleset=ruleset_path,
+                bundle_id=bundle_id,
+                mapping_contract=mapping_contract or {},
+                source_date_epoch=controlled_epoch,
+                scan_public=protection.scan_public_artifacts,
+            )
+            published_ruleset_path = (
+                staging / "artifacts" / "private" / "ruleset.json"
+            )
+            ruleset_path.unlink()
+            for path in feature_dir.glob("*.layout.json"):
+                path.unlink()
         manifest = BuildManifest.create(
             project_id=config.project.id,
             project_version=config.project.version,
@@ -326,7 +477,12 @@ def build_project(
                 for scope in ruleset.scopes
             ],
             artifacts=[
-                {"path": "ruleset.json", "sha256": _sha256(ruleset_path)},
+                {
+                    "path": str(
+                        published_ruleset_path.relative_to(staging).as_posix()
+                    ),
+                    "sha256": _sha256(published_ruleset_path),
+                },
                 *font_artifacts,
                 *[
                     {
@@ -341,13 +497,42 @@ def build_project(
                     ),
                     "sha256": _sha256(css_artifacts["css"]),
                 },
+                *(
+                    [
+                        {
+                            "path": "artifacts/build-manifest.json",
+                            "sha256": _sha256(
+                                staging / "artifacts" / "build-manifest.json"
+                            ),
+                        }
+                    ]
+                    if canonical_manifest is not None
+                    else []
+                ),
             ],
             verification={"status": "pending"},
             security={
                 "browserDecoderIncluded": config.codec.browser_build,
                 "mappingEmbedded": config.codec.embed_mappings,
-                "glyphNamesDroppedFromWoff2": True,
+                "glyphNamesDroppedFromWoff2": document_bound,
+                "publicArtifactScan": (
+                    "pass"
+                    if canonical_manifest is not None
+                    else "not-run"
+                ),
             },
+            profile=(
+                {
+                    "name": protection.profile,
+                    "mappingContract": protection.mapping_contract,
+                    "bundleId": bundle_id,
+                    "cacheIdentity": bundle_id,
+                    "gsub": gsub_diagnostics,
+                    "canonicalManifest": "artifacts/build-manifest.json",
+                }
+                if document_bound
+                else None
+            ),
         )
         (staging / "manifest.json").write_text(
             manifest.to_json(),
@@ -357,12 +542,15 @@ def build_project(
         _publish_atomically(staging, destination)
         return destination
     except ShieldFontError:
+        shutil.rmtree(staging, ignore_errors=True)
         raise
     except (OSError, ValueError, json.JSONDecodeError) as error:
+        staging_label = staging.name
+        shutil.rmtree(staging, ignore_errors=True)
         raise ShieldFontError(
             "ShieldFont build failed before publication",
             code=ErrorCode.GENERIC,
             exit_code=ExitCode.GENERIC_FAILURE,
             stage="build",
-            details={"staging": str(staging), "reason": str(error)},
+            details={"staging": staging_label, "reason": str(error)},
         ) from error

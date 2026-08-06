@@ -246,6 +246,17 @@
           "title": "Defaultscopepolicy",
           "type": "string"
         },
+        "gsubOptimization": {
+          "default": "auto",
+          "description": "Affects whether GSUB boundary generation evaluates Format 2 or uses the deterministic Format 3 fallback.",
+          "enum": [
+            "auto",
+            "format2",
+            "format3"
+          ],
+          "title": "Gsuboptimization",
+          "type": "string"
+        },
         "maxEstimatedSubtableBytes": {
           "default": 40960,
           "description": "Affects the maximum estimated size allowed for a generated GSUB subtable.",
@@ -403,6 +414,7 @@
         "sourceDateEpoch": {
           "anyOf": [
             {
+              "minimum": 0,
               "type": "integer"
             },
             {
@@ -421,6 +433,109 @@
         }
       },
       "title": "ProjectSection",
+      "type": "object"
+    },
+    "ProtectionSection": {
+      "additionalProperties": false,
+      "description": "Defines compatibility and document-bound mapping, subset, identity, and artifact privacy behavior.",
+      "properties": {
+        "documentNonce": {
+          "anyOf": [
+            {
+              "format": "password",
+              "type": "string",
+              "writeOnly": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Affects document-specific alias selection and cache identity; only a digest prefix may be reported.",
+          "title": "Documentnonce"
+        },
+        "inventory": {
+          "description": "Affects which source groups are retained in a document-bound subset.",
+          "items": {
+            "format": "path",
+            "type": "string"
+          },
+          "title": "Inventory",
+          "type": "array"
+        },
+        "mappingContract": {
+          "default": "shieldfont.mapping.v1",
+          "description": "Affects whether scope dictionaries use legacy CSV/flat mappings or versioned grouped alias contracts.",
+          "enum": [
+            "shieldfont.mapping.v1",
+            "shieldfont.mapping.v2"
+          ],
+          "title": "Mappingcontract",
+          "type": "string"
+        },
+        "profile": {
+          "default": "compatibility",
+          "description": "Affects whether the build preserves compatibility output or creates a document-bound canonical bundle.",
+          "enum": [
+            "compatibility",
+            "document-bound"
+          ],
+          "title": "Profile",
+          "type": "string"
+        },
+        "reserve": {
+          "description": "Affects which explicit source or alias entries are retained beyond the document inventory.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reserve",
+          "type": "array"
+        },
+        "reserveAliases": {
+          "default": 0,
+          "description": "Affects how many deterministic future-coverage entries are retained beyond the document inventory.",
+          "minimum": 0,
+          "title": "Reservealiases",
+          "type": "integer"
+        },
+        "scanPublicArtifacts": {
+          "default": false,
+          "description": "Affects whether public artifacts are scanned for private files, paths, timestamps, and mapping hints before publication.",
+          "title": "Scanpublicartifacts",
+          "type": "boolean"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "format": "password",
+              "type": "string",
+              "writeOnly": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Affects deterministic alias selection for versioned mappings; it is omitted from public metadata.",
+          "title": "Seed"
+        },
+        "tenantId": {
+          "anyOf": [
+            {
+              "format": "password",
+              "type": "string",
+              "writeOnly": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Affects cache isolation; only an opaque digest may be reported.",
+          "title": "Tenantid"
+        }
+      },
+      "title": "ProtectionSection",
       "type": "object"
     },
     "ScopeSection": {
@@ -622,6 +737,10 @@
     "project": {
       "$ref": "#/$defs/ProjectSection",
       "description": "Controls the project identity and output location."
+    },
+    "protection": {
+      "$ref": "#/$defs/ProtectionSection",
+      "description": "Controls additive mapping-contract, document-subset, cache-identity, and privacy behavior."
     },
     "schema": {
       "const": "shieldfont/v1",

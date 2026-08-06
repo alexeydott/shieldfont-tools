@@ -1,0 +1,40 @@
+{
+  "schema": "shieldfont.mapping.v2",
+  "profile": "versioned-groups",
+  "seed": {
+    "id": "example-seed",
+    "value": "demo-contract-seed"
+  },
+  "groups": [
+    {
+      "id": "example.noun",
+      "version": "1",
+      "grammar": "noun",
+      "sources": [
+        {
+          "source": "alpha",
+          "aliases": ["bravo", "charlie", "delta"]
+        },
+        {
+          "source": "document",
+          "aliases": ["article", "record", "paper"]
+        }
+      ]
+    },
+    {
+      "id": "example.verb",
+      "version": "1",
+      "grammar": "verb",
+      "sources": [
+        {
+          "source": "build",
+          "aliases": ["create", "make", "forge"]
+        },
+        {
+          "source": "protect",
+          "aliases": ["guard", "shield", "defend"]
+        }
+      ]
+    }
+  ]
+}

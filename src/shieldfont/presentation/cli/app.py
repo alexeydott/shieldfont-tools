@@ -116,6 +116,19 @@ def _parse_scripts(value: str) -> tuple[str, ...]:
     return scripts
 
 
+def ensure_project_config(project_root: Path) -> Path:
+    """Create the default project profile when a root is uninitialized."""
+
+    root = project_root.resolve()
+    config_path = root / "shieldfont.yml"
+    if not config_path.is_file():
+        initialize_project(
+            InitRequest(project_dir=root),
+            inspect_font=inspect_font_for_init,
+        )
+    return config_path
+
+
 @app.callback()
 def configure_cli(
     log_format: Annotated[
@@ -461,7 +474,11 @@ Examples:
 """
 
     root = project_root.resolve()
-    config = load_config(root / "shieldfont.yml")
+    created = not (root / "shieldfont.yml").is_file()
+    config_path = ensure_project_config(root)
+    if created:
+        typer.echo(f"Created default ShieldFont project in {root}")
+    config = load_config(config_path)
     actions = WebActions(root, fonts_root)
     source_path = config.source.path
     if not source_path.is_absolute():

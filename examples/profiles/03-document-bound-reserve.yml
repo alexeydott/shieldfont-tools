@@ -1,0 +1,60 @@
+# Document-bound reserve profile: keeps deterministic future-coverage aliases.
+# The inventory selects the noun group; reserveAliases then retains two entries
+# from an unselected group for a later document revision.
+schema: shieldfont/v1
+# Project and deterministic output identity.
+project:
+  # Stable identifier for this reserve-policy example.
+  id: example-document-bound-reserve
+  # Example release version recorded in generated manifests.
+  version: 2.0.0
+  # Separate output directory so this example cannot overwrite example 02.
+  outputDir: ../../dist/examples/document-bound-reserve
+  # Required for stable reserve selection and replay.
+  reproducible: true
+  # Fixed font metadata timestamp.
+  sourceDateEpoch: 0
+# Source TrueType font settings.
+source:
+  # Replace with the selected glyf-based source font.
+  path: ../../.fonts/Source.ttf
+# Generated font metadata and required delivery containers.
+font:
+  # Family name for the reserve-policy build.
+  family: ShieldFont Reserved Example
+  # Canonical document-bound publication requires both formats.
+  outputFormats: [ttf, woff2]
+# Explicit Format 2 request is measured; the safe deterministic Format 3 path
+# is selected until shaping validation approves a Format 2 representation.
+layout:
+  gsubOptimization: format2
+# One scope backed by the grouped mapping contract.
+scopes:
+  - id: default
+    # Mapping v2 JSON with multiple groups and alias candidates.
+    dictionaries:
+      - ../mappings/document-bound.json
+# Preserve source-to-target semantics in the normalized ruleset.
+mapping:
+  mode: directed
+# Document-bound identity, subset, reserve, and privacy policy.
+protection:
+  # Select groups from the reserve inventory and keep future coverage.
+  profile: document-bound
+  # Required contract for aliases, seed, nonce, and group selection.
+  mappingContract: shieldfont.mapping.v2
+  # Demo value only; use a restricted secret for real builds.
+  seed: demo-private-build-seed
+  # Changes the document identity without exposing the raw nonce.
+  documentNonce: demo-reserve-2026-08-06
+  # Separates cache identity for a tenant or deployment.
+  tenantId: demo-private-tenant
+  # Selects the noun group; other groups are eligible for reserves.
+  inventory:
+    - ../content/reserve.txt
+  # Retain two deterministic entries from otherwise unselected groups.
+  reserveAliases: 2
+  # Explicit reserve sources/aliases may be added alongside the count.
+  reserve: []
+  # Run the public-tier privacy gate before atomic publication.
+  scanPublicArtifacts: true

@@ -34,6 +34,15 @@ def resolve_generation_profile(
     project_version: str | None = None,
     font_display: str | None = None,
     embed_font: bool | None = None,
+    protection_profile: str | None = None,
+    mapping_contract: str | None = None,
+    mapping_seed: str | None = None,
+    document_nonce: str | None = None,
+    tenant_id: str | None = None,
+    inventory_paths: list[Path] | None = None,
+    reserve_aliases: int | None = None,
+    scan_public_artifacts: bool | None = None,
+    gsub_optimization: str | None = None,
     strict: bool = True,
 ) -> ShieldFontConfig:
     """Load a profile and apply explicit command-line overrides."""
@@ -102,6 +111,30 @@ def resolve_generation_profile(
         payload["css"]["font_display"] = font_display
     if embed_font is not None:
         payload["css"]["embed_font"] = embed_font
+    if protection_profile is not None:
+        payload["protection"]["profile"] = protection_profile
+        if protection_profile == "document-bound" and mapping_contract is None:
+            payload["protection"]["mapping_contract"] = "shieldfont.mapping.v2"
+        if protection_profile == "document-bound" and scan_public_artifacts is None:
+            payload["protection"]["scan_public_artifacts"] = True
+    if mapping_contract is not None:
+        payload["protection"]["mapping_contract"] = mapping_contract
+    if mapping_seed is not None:
+        payload["protection"]["seed"] = mapping_seed
+    if document_nonce is not None:
+        payload["protection"]["document_nonce"] = document_nonce
+    if tenant_id is not None:
+        payload["protection"]["tenant_id"] = tenant_id
+    if inventory_paths is not None:
+        payload["protection"]["inventory"] = [
+            _resolved_path(path, resolved_profile) for path in inventory_paths
+        ]
+    if reserve_aliases is not None:
+        payload["protection"]["reserve_aliases"] = reserve_aliases
+    if scan_public_artifacts is not None:
+        payload["protection"]["scan_public_artifacts"] = scan_public_artifacts
+    if gsub_optimization is not None:
+        payload["layout"]["gsub_optimization"] = gsub_optimization
 
     try:
         return ShieldFontConfig.model_validate(payload)

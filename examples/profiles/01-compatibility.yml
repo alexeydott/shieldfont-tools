@@ -1,0 +1,50 @@
+# Compatibility profile: preserves the original CSV-based shieldfont/v1 flow.
+# Use this profile when an existing project should keep its previous mapping
+# input format and artifact layout without document-bound selection.
+# The source path is relative to this profile file.
+schema: shieldfont/v1
+# Project identity is written to manifests and generated font metadata.
+project:
+  # Stable identifier used to distinguish this example's artifacts.
+  id: example-compatibility
+  # Human-readable project release version.
+  version: 1.0.0
+  # Atomic output directory, relative to this profile.
+  outputDir: ../../dist/examples/compatibility
+  # Reproducible serialization makes repeated builds comparable.
+  reproducible: true
+  # Fixed OpenType timestamp for deterministic output.
+  sourceDateEpoch: 0
+# Input TrueType font settings.
+source:
+  # Replace this path if the repository does not contain .fonts/Source.ttf.
+  path: ../../.fonts/Source.ttf
+# Generated font naming and containers.
+font:
+  # Family name embedded in the generated shielded font.
+  family: ShieldFont Compatibility Example
+  # Emit both editable TTF and web WOFF2 artifacts.
+  outputFormats: [ttf, woff2]
+# One mapping/shaping scope for this small compatibility example.
+scopes:
+  - id: default
+    # Legacy CSV dictionary used by the compatibility contract.
+    dictionaries:
+      - ../../dictionaries/default.csv
+# Keep the source-to-target direction explicit.
+mapping:
+  mode: directed
+# Compatibility mode keeps existing CSV behavior and does not create
+# document-bound public/private artifact tiers.
+protection:
+  profile: compatibility
+  # v1 is the legacy CSV contract; no grouped aliases are selected.
+  mappingContract: shieldfont.mapping.v1
+  # No document text is used to select a subset.
+  inventory: []
+  # No future-coverage aliases are reserved.
+  reserveAliases: 0
+  # No explicit source/alias values are reserved.
+  reserve: []
+  # Privacy scanning is specific to document-bound canonical bundles.
+  scanPublicArtifacts: false

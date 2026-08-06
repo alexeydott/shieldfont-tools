@@ -969,12 +969,14 @@ import { parseDocument } from "/vendor/yaml/browser/index.js";
         content,
       }),
     });
-    localStorage.setItem(projectCacheKey(payload.path || path), content);
+    const savedContent = payload.content || content;
+    setProjectValue(savedContent);
+    localStorage.setItem(projectCacheKey(payload.path || path), savedContent);
     projectEditor.dataset.path = payload.path || path;
     projectStatus.textContent = `Saved ${payload.path || path}.`;
     console.info("[FIX] Project YAML saved", {
       path: payload.path || path,
-      characters: content.length,
+      characters: savedContent.length,
     });
   }
 

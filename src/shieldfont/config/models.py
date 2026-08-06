@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 
 
 def _default_containers() -> list[Literal["ttf", "woff2"]]:
@@ -63,7 +63,7 @@ class ProjectSection(ConfigModel):
     version: str = "0.1.0"
     output_dir: Path = Field(default_factory=_default_output_dir)
     reproducible: bool = True
-    source_date_epoch: int | None = None
+    source_date_epoch: int | None = Field(default=None, ge=0)
 
 
 class InstanceSection(ConfigModel):
@@ -103,6 +103,7 @@ class LayoutSection(ConfigModel):
     boundary_mode: Literal["fire-then-revert"] = "fire-then-revert"
     max_estimated_subtable_bytes: int = Field(default=40960, gt=0, lt=65536)
     use_extension_lookups: bool = True
+    gsub_optimization: Literal["auto", "format2", "format3"] = "auto"
     default_scope_policy: Literal["fallback", "error", "no-op"] = "fallback"
 
 
@@ -133,6 +134,21 @@ class MappingSection(ConfigModel):
     cross_script: bool = False
     case_mode: Literal["auto", "sensitive", "fold"] = "auto"
     normalization: Literal["NFC"] = "NFC"
+
+
+class ProtectionSection(ConfigModel):
+    profile: Literal["compatibility", "document-bound"] = "compatibility"
+    mapping_contract: Literal[
+        "shieldfont.mapping.v1",
+        "shieldfont.mapping.v2",
+    ] = "shieldfont.mapping.v1"
+    seed: SecretStr | None = None
+    document_nonce: SecretStr | None = None
+    tenant_id: SecretStr | None = None
+    inventory: list[Path] = Field(default_factory=list)
+    reserve_aliases: int = Field(default=0, ge=0)
+    reserve: list[str] = Field(default_factory=list)
+    scan_public_artifacts: bool = False
 
 
 class CssClassesSection(ConfigModel):
@@ -197,7 +213,79 @@ class ShieldFontConfig(ConfigModel):
         ]
     )
     mapping: MappingSection = Field(default_factory=MappingSection)
+    protection: ProtectionSection = Field(default_factory=ProtectionSection)
     css: CssSection = Field(default_factory=CssSection)
     codec: CodecSection = Field(default_factory=CodecSection)
     verification: VerificationSection = Field(default_factory=VerificationSection)
     license: LicenseSection = Field(default_factory=LicenseSection)
+
+    @model_validator(mode="after")
+    def validate_protection_profile(self) -> ShieldFontConfig:
+        protection = self.protection
+        if (
+            protection.mapping_contract == "shieldfont.mapping.v1"
+            and (protection.seed is not None or protection.document_nonce is not None)
+        ):
+            raise ValueError(
+                "protection.seed and protection.documentNonce require "
+                "shieldfont.mapping.v2"
+            )
+        for field_name, value in (
+            ("seed", protection.seed),
+            ("documentNonce", protection.document_nonce),
+            ("tenantId", protection.tenant_id),
+        ):
+            if value is not None and not value.get_secret_value().strip():
+                raise ValueError(f"protection.{field_name} must not be empty")
+        document_options_used = bool(
+            protection.inventory
+            or protection.reserve_aliases
+            or protection.reserve
+            or protection.tenant_id is not None
+        )
+        if protection.profile == "compatibility" and document_options_used:
+            raise ValueError(
+                "document inventory, reserve, and tenant options require the "
+                "document-bound protection profile"
+            )
+        if (
+            protection.profile == "document-bound"
+            and protection.mapping_contract != "shieldfont.mapping.v2"
+        ):
+            raise ValueError(
+                "the document-bound protection profile requires "
+                "shieldfont.mapping.v2"
+            )
+        if protection.profile == "document-bound" and not self.project.reproducible:
+            raise ValueError(
+                "the document-bound protection profile requires reproducible builds"
+            )
+        if (
+            protection.profile == "document-bound"
+            and not protection.scan_public_artifacts
+        ):
+            raise ValueError(
+                "the document-bound protection profile requires "
+                "scanPublicArtifacts"
+            )
+        if (
+            protection.profile == "compatibility"
+            and protection.scan_public_artifacts
+        ):
+            raise ValueError(
+                "scanPublicArtifacts requires the document-bound protection profile"
+            )
+        if protection.profile == "document-bound" and not {
+            "ttf",
+            "woff2",
+        }.issubset(self.font.output_formats):
+            raise ValueError(
+                "the document-bound protection profile requires TTF and WOFF2 outputs"
+            )
+        normalized_reserve = [value.strip() for value in protection.reserve]
+        if any(not value for value in normalized_reserve):
+            raise ValueError("protection.reserve entries must not be empty")
+        if len(set(normalized_reserve)) != len(normalized_reserve):
+            raise ValueError("protection.reserve entries must be unique")
+        protection.reserve = normalized_reserve
+        return self
