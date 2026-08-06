@@ -35,4 +35,20 @@ python -m pip install -e ".[portable]"
 .\build\shieldfont-generate.exe run shieldfont.yml --help
 ```
 
-See [`docs/cli.md`](docs/cli.md) for commands and [`docs/configuration.md`](docs/configuration.md) for profile settings.
+## CLI reference
+
+The portable `shieldfont-generate.exe` is intended for Windows x64 and
+provides profile generation plus the local GUI server. Run these commands from
+the repository root:
+
+| Command | Description |
+|---|---|
+| `.\build\shieldfont-generate.exe --help` | List available commands and runnable examples. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --postfix _shld --output-dir dist --json` | Generate and publish ShieldFont artifacts, using a source font and a family suffix. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --family MyShieldFont --output-dir dist\custom` | Generate artifacts with an explicit output family name. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --dictionary dictionaries\default.csv --font-display swap` | Generate using a selected dictionary and CSS display policy. |
+| `.\build\shieldfont-generate.exe serve --project-root . --fonts-dir .fonts --port 8765` | Start the local web GUI on port 8765. Open `http://127.0.0.1:8765/` in a browser. |
+
+The full CLI, including dictionary, font, feature, CSS, verification, and
+migration commands, is documented in [`docs/cli.md`](docs/cli.md).
+Profile settings are documented in [`docs/configuration.md`](docs/configuration.md).

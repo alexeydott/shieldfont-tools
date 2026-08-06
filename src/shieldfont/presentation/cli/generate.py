@@ -23,10 +23,18 @@ LOGGER = logging.getLogger("shieldfont.generate")
 
 generate_app = typer.Typer(
     name="shieldfont-generate",
-    help="Generate ShieldFont artifacts from a profile and command-line overrides.",
+    help=r"""Generate ShieldFont artifacts from a profile and command-line overrides.
+
+Examples:
+
+  .\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf
+
+  .\build\shieldfont-generate.exe serve --port 8765
+""",
     no_args_is_help=True,
     add_completion=False,
     rich_markup_mode=None,
+    context_settings={"terminal_width": 120},
 )
 generate_app.command("serve")(serve_command)
 
@@ -130,13 +138,16 @@ def generate_command(
     """Generate and atomically publish artifacts from a profile.
 
 Examples:
-  shieldfont-generate run shieldfont.yml --source .fonts\\segoepr.ttf `
-    --postfix _ru --output-dir build\\ru --json
-  shieldfont-generate run shieldfont.yml --source .fonts\\segoepr.ttf `
-    --family MyShieldFont --output-dir build\\custom
-  shieldfont-generate run shieldfont.yml --source .fonts\\segoepr.ttf `
-    --dictionary dictionaries\\default.csv --font-display swap
-  shieldfont-generate serve --project-root . --fonts-dir .fonts --port 8765
+
+  .\\build\\shieldfont-generate.exe run shieldfont.yml --source .fonts\\segoepr.ttf
+
+  .\\build\\shieldfont-generate.exe run shieldfont.yml --postfix _ru
+
+  .\\build\\shieldfont-generate.exe run shieldfont.yml --family MyShieldFont
+
+  .\\build\\shieldfont-generate.exe run shieldfont.yml --dictionary default.csv
+
+  .\\build\\shieldfont-generate.exe serve --port 8765
 """
 
     log_event(

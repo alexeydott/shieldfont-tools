@@ -2,7 +2,12 @@
 
 # CLI Reference
 
-The executable is `shieldfont`.
+This project has two CLI entry points:
+
+- `shieldfont` is the full Python CLI for initialization, font and dictionary
+  operations, builds, verification, CSS, and migration.
+- `shieldfont-generate.exe` is the standalone Windows x64 executable for
+  profile-driven generation and the local GUI server.
 
 The standalone `shieldfont-generate` executable builds artifacts from a YAML
 profile and lets explicit command-line values override the profile:
@@ -28,6 +33,26 @@ combine `--family` and `--postfix`.
 `--strict/--non-strict` controls unknown profile-field validation. The command
 uses the same atomic build pipeline as `shieldfont build` and performs no
 network or LLM requests.
+
+## Portable executable examples
+
+Run the following commands from the repository root. Each example is
+copy-pasteable in PowerShell:
+
+```powershell
+.\build\shieldfont-generate.exe --help
+.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --postfix _ru --output-dir build\ru --json
+.\build\shieldfont-generate.exe serve --project-root . --fonts-dir .fonts --port 8765
+```
+
+| Example | Description |
+|---|---|
+| `.\build\shieldfont-generate.exe --help` | Show the available portable commands and their examples. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf` | Run the profile with the repository's sample TrueType source font. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --postfix _ru --output-dir build\ru --json` | Override the source font and family suffix, publish to `build\ru`, and print JSON output. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --family MyShieldFont --output-dir build\custom` | Use an explicit generated family name. Do not combine `--family` with `--postfix`. |
+| `.\build\shieldfont-generate.exe run shieldfont.yml --source .fonts\segoepr.ttf --dictionary dictionaries\ru-alpha.csv --font-display swap` | Select a dictionary and CSS `font-display` policy for the build. |
+| `.\build\shieldfont-generate.exe serve --project-root . --fonts-dir .fonts --port 8765` | Start the local GUI, using `.fonts` for source-font selection, on port 8765. |
 
 ## Portable Windows executable
 

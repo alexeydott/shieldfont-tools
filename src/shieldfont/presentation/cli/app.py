@@ -453,7 +453,12 @@ def serve_command(
         ),
     ] = Path(".fonts"),
 ) -> None:
-    """Serve the local ShieldFont GUI and safe application actions."""
+    r"""Serve the local ShieldFont GUI and safe application actions.
+
+Examples:
+
+  .\build\shieldfont-generate.exe serve --port 8765
+"""
 
     root = project_root.resolve()
     config = load_config(root / "shieldfont.yml")
