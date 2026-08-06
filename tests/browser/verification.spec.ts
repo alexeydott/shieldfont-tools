@@ -1281,6 +1281,71 @@ test("dictionary loading is independent from file inventory failures", async ({ 
 });
 
 test("web GUI loads status and scoped utilities", async ({ page }) => {
+  const sourceFontPath = "deps/shieldfont/packages/font/optik-a.woff2";
+  await page.route("**/api/config", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json() as {
+      parameters?: { source?: { path?: string } };
+    };
+    await route.fulfill({
+      response,
+      json: {
+        ...payload,
+        parameters: {
+          ...payload.parameters,
+          source: { ...payload.parameters?.source, path: sourceFontPath },
+        },
+      },
+    });
+  });
+  await page.route("**/api/files", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        files: [
+          { path: sourceFontPath, kind: "font", size: 1 },
+          { path: "dictionaries/default.csv", kind: "dictionary", size: 1 },
+        ],
+      }),
+    });
+  });
+  await page.route("**/api/source-font**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "font/woff2",
+      body: readFileSync("deps/shieldfont/packages/font/optik-a.woff2"),
+    });
+  });
+  await page.route("**/api/shieldfont.css**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "text/css",
+      body: "",
+    });
+  });
+  await page.route("**/api/action", async (route) => {
+    const request = route.request().postDataJSON() as { action?: string; text?: string } | null;
+    const action = request?.action;
+    if (!["build", "css-build", "test-text"].includes(action || "")) {
+      await route.continue();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "ok",
+        action,
+        process: { id: `browser-${action}`, status: "completed" },
+        outputDir: "dist",
+        artifacts: { css: "dist/shieldfont.css" },
+        shieldFont: action === "test-text"
+          ? "Я помню тягостная вечность:"
+          : undefined,
+      }),
+    });
+  });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "ShieldFont Toolchain" })).toBeVisible();
   await expect(page.locator("#status")).toContainText("Ready.");
