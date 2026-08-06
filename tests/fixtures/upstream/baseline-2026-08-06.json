@@ -1,0 +1,121 @@
+{
+  "schema": "shieldfont-seedfont-baseline/v1",
+  "captured_at": "2026-08-06T17:10:40Z",
+  "fixture_policy": "Synthetic observations only; no upstream font binaries, mappings, document text, or screenshots are copied.",
+  "repositories": {
+    "parent": {
+      "revision": "749b83c4883ac8a56b27541edffb485c91b46243",
+      "branch": "main",
+      "working_tree": "clean"
+    },
+    "upstream": {
+      "revision": "d6efb2d3972569628e870ff2767cd29412c245ee",
+      "remote": "https://github.com/alexeydott/shieldfont.git",
+      "working_tree": "clean"
+    }
+  },
+  "source_inputs": {
+    "font": {
+      "path": ".fonts/segoeui.ttf",
+      "sha256": "8134dbcd09e7b123c9a7f229d49cffbcb01352cc72ea5e1076b65d0dca9f73cd"
+    },
+    "mapping": {
+      "scope": "default",
+      "pairs": 43,
+      "sha256": "6729e458e267857bac44616575152530ec10752555951175cd4ead47ded93810"
+    }
+  },
+  "artifacts": {
+    "build_id": "09ed45e59664b1218aff7ae6b2624bad389f57317cda1a204540a2a13ac7fc3f",
+    "dist/manifest.json": {
+      "bytes": 1651,
+      "sha256": "de3c4dd5745d3d59bdea4ce4467c6547a60f8dcd82e8cbe820c79e2ab0f871ef"
+    },
+    "dist/ruleset.json": {
+      "bytes": 8329,
+      "sha256": "170526d956d1a0cb17ca23dfb3a363bd942fb044a29feb231e67d3782888f206"
+    },
+    "dist/fonts/ShieldFont-Regular.ttf": {
+      "bytes": 842804,
+      "sha256": "25b83c376690dc4aa9ea53836e4d2a77f3f6f824d3807f9b13916084896f41d2"
+    },
+    "dist/fonts/ShieldFont-Regular.woff2": {
+      "bytes": 349208,
+      "sha256": "a2317f752f215c4c3f5a8883220788c9c02dd9ebc4bf6a531f04153296cfeae4"
+    },
+    "dist/fonts/ShieldFont Text-Regular.ttf": {
+      "bytes": 959544,
+      "sha256": "5f22ddf0eab7948c660372eacef0219f6c65dfa51175a49ae4e271dbf84f1cab"
+    },
+    "dist/fonts/ShieldFont Text-Regular.woff2": {
+      "bytes": 386868,
+      "sha256": "44bb9c9eb7b211fcaf64b4ab59e546db4e11c49ca469eba1e7ded1e8be0c8a00"
+    },
+    "dist/features/combined.fea": {
+      "sha256": "47c341ea453b3d4aec9cd3bf6f57ac6a1786c4016d862a7194883c9e96e9e851"
+    },
+    "dist/features/default.fea": {
+      "sha256": "cbd3c4c6f65e0debbebe2eb6b6ec49c81d2f0865ef06d99e13e990e3295104b2"
+    },
+    "dist/shieldfont.css": {
+      "bytes": 513,
+      "sha256": "4da1c9ddad8fa5bc0e491520503d73e713238e6df7e3becf3ac2495475687ef1"
+    },
+    "dist/sri.json": {
+      "sha256": "3532f21b3b45de500c9e3471e25bbd7d469b54bd368e650bcc7d31ed9792695a"
+    }
+  },
+  "opentype": {
+    "outline": "glyf",
+    "glyphs": 5522,
+    "tables": 22,
+    "gsub": {
+      "present": true,
+      "script": "DFLT",
+      "mapping_pairs": 43
+    }
+  },
+  "timings_ms": {
+    "python_tests": 4920,
+    "node_tests": 344,
+    "browser_suite": 19400,
+    "browser_by_engine": {
+      "chromium": 3230,
+      "firefox": 4185,
+      "webkit": 9179
+    }
+  },
+  "verification": {
+    "python_tests": {
+      "command": "python -m pytest tests/",
+      "passed": 76,
+      "failed": 0
+    },
+    "node_tests": {
+      "command": "npm run test:node",
+      "passed": 4,
+      "failed": 0
+    },
+    "browser_tests": {
+      "command": "npm run test:browser",
+      "cases": 6,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "failed": 0,
+      "screenshots": "not persisted; transient browser output remains outside tracked fixtures"
+    },
+    "upstream_smoke": {
+      "command": "python scripts/smoke_test.py",
+      "status": "warn",
+      "reason": "requests and brotli are unavailable in the isolated upstream environment"
+    }
+  },
+  "warnings": [
+    "Numeric performance budgets remain unapproved.",
+    "WOFF2 hashes may vary with Brotli version.",
+    "Temporary .dist.* directories are transient and excluded from the baseline fixture."
+  ]
+}
