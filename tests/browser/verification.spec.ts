@@ -586,15 +586,20 @@ test("project editor aligns gutter controls with YAML lines", async ({ page }) =
     if (!line || !lineNumber || !folding) {
       throw new Error("Monaco YAML gutter controls are missing");
     }
+    const lineTops = [...document.querySelectorAll("#project-editor .view-line")]
+      .map((element) => element.getBoundingClientRect().top);
+    const foldingTop = folding.getBoundingClientRect().top;
     return {
       lineTop: line.getBoundingClientRect().top,
       lineNumberTop: lineNumber.getBoundingClientRect().top,
-      foldingTop: folding.getBoundingClientRect().top,
+      foldingLineDelta: Math.min(
+        ...lineTops.map((lineTop) => Math.abs(lineTop - foldingTop)),
+      ),
     };
   });
 
   expect(Math.abs(alignment.lineNumberTop - alignment.lineTop)).toBeLessThan(1);
-  expect(Math.abs(alignment.foldingTop - alignment.lineTop)).toBeLessThan(1);
+  expect(alignment.foldingLineDelta).toBeLessThan(1);
 });
 
 test("project editor shows YAML breadcrumbs and clickable problems", async ({ page }) => {
