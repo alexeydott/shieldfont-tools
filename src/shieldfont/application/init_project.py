@@ -32,6 +32,106 @@ from shieldfont.infrastructure.logging import log_event
 LOGGER = logging.getLogger("shieldfont.init")
 _SCRIPT_NAMES = {"DFLT": "default", "latn": "latin", "cyrl": "cyrillic"}
 FONT_FAMILY_POSTFIX = "_shld"
+PROFILE_HEADER = """# ShieldFont Toolchain generation profile.
+# Edit the values below to control the generated font and delivery artifacts.
+# Paths are relative to this shieldfont.yml file unless an absolute path is used.
+#
+# schema: profile format version; it selects the validation contract.
+# project: project identity, reproducibility, and the default output directory.
+# source: input font, accepted containers, and variable-font instance axes.
+# font: generated family names, descriptions, and TTF/WOFF2 output formats.
+# layout: OpenType feature and lookup-size policies used during font building.
+# scopes: per-script processing scopes, shaping settings, and dictionaries.
+# mapping: dictionary conflict, case, normalization, and cross-script policies.
+# css: generated CSS path, URL/font-display behavior, and optional embedding.
+# codec: JavaScript codec package formats and whether browser assets are built.
+# verification: enabled verification levels, HarfBuzz, browsers, and warnings.
+# license: behavior when source-font licensing metadata does not satisfy policy.
+#
+# Changing source, scopes, mapping, or layout changes generated glyphs/features.
+# Changing font changes font naming and manifest metadata. Changing css or codec
+# changes delivery assets. Changing verification changes checks performed, not
+# the font itself. The CLI can override the main inputs without editing this file.
+"""
+PROFILE_FIELD_COMMENTS = {
+    "schema": "Profile contract version used for validation.",
+    "project": "Project identity and output/reproducibility settings.",
+    "id": "Stable identifier used in manifests and scope records.",
+    "version": "Version written to generated font metadata and the manifest.",
+    "outputDir": "Default atomic publication directory for generated artifacts.",
+    "reproducible": "Keep build serialization deterministic when enabled.",
+    "sourceDateEpoch": (
+        "Optional timestamp used to make generated metadata reproducible."
+    ),
+    "source": "Source-font input and variable-font selection settings.",
+    "path": "Input font path; changing it changes the source glyph inventory.",
+    "requiredOutline": (
+        "Required outline technology; glyf is the supported TrueType outline."
+    ),
+    "allowedContainers": "Accepted source containers before normalization.",
+    "instance": "Variable-font instance selection applied before generation.",
+    "axes": "Axis values such as wght or wdth used for the normalized instance.",
+    "font": "Generated font naming, description, and output container settings.",
+    "family": (
+        "Generated family name; affects font filenames, names, and manifest metadata."
+    ),
+    "description": "Human-readable description stored with generated project metadata.",
+    "outputFormats": "Font containers to publish, normally ttf and/or woff2.",
+    "shieldFace": "CSS-visible ShieldFont face naming.",
+    "neutralFace": "Optional unchanged comparison face and its CSS family name.",
+    "enabled": "Whether the neutral comparison font is generated.",
+    "layout": "OpenType feature generation and lookup safety policies.",
+    "defaultFeature": "Feature tag that receives generated mapping lookups.",
+    "boundaryMode": "Lookup boundary behavior used around transformed text.",
+    "maxEstimatedSubtableBytes": "Safety limit for generated OpenType subtables.",
+    "useExtensionLookups": (
+        "Permit extension lookups when ordinary lookup space is insufficient."
+    ),
+    "defaultScopePolicy": "Behavior when text does not match a configured scope.",
+    "scopes": "Independent dictionary and shaping pipelines for scripts/locales.",
+    "encoder": "Input-side locale and source-script selection for a scope.",
+    "locales": "Locales accepted by the scope's encoder.",
+    "sourceScripts": "Unicode/script sources eligible for the scope.",
+    "shaping": "OpenType script/language settings for the generated scope.",
+    "targetScripts": "Scripts targeted by shaping rules.",
+    "openTypeScript": "Four-character OpenType script tag for generated lookups.",
+    "defaultLanguage": "Whether the scope is used as the default language system.",
+    "languages": "OpenType language tags associated with the scope.",
+    "dictionaries": (
+        "CSV mappings consumed by the scope; they change generated substitutions."
+    ),
+    "mapping": "Dictionary interpretation and conflict policies.",
+    "mode": "Mapping direction semantics: directed, bidirectional, or involution.",
+    "duplicatePolicy": "Resolution when a source appears more than once.",
+    "targetCollisionPolicy": "Resolution when multiple sources produce one target.",
+    "selfMapPolicy": "Handling of mappings whose source and target are identical.",
+    "crossScript": "Allow mappings that cross script boundaries.",
+    "caseMode": "Case handling before dictionary matching.",
+    "normalization": "Unicode normalization applied before matching.",
+    "css": "CSS delivery settings generated beside the font assets.",
+    "file": "Configured CSS filename; the build currently publishes shieldfont.css.",
+    "assetBaseUrl": "URL prefix used by generated @font-face declarations.",
+    "fontDisplay": "CSS font-display value controlling browser font loading behavior.",
+    "fontSynthesis": "CSS font-synthesis policy for the generated faces.",
+    "embedFont": "Embed font data in CSS instead of referencing external font files.",
+    "classes": "CSS class names emitted for ShieldFont and neutral text faces.",
+    "shield": "CSS class selecting the generated ShieldFont face.",
+    "neutral": "CSS class selecting the neutral comparison face.",
+    "codec": "JavaScript codec package and browser-delivery settings.",
+    "packageName": "Package name used by generated codec metadata.",
+    "formats": "JavaScript module formats to emit.",
+    "browserBuild": "Include browser codec assets in the generated delivery set.",
+    "embedMappings": "Embed mapping data in codec output when enabled.",
+    "unknownScopePolicy": "Codec behavior for an unknown scope identifier.",
+    "verification": "Post-build verification levels and failure policy.",
+    "levels": "Verification stages such as structural, shaping, codec, and browser.",
+    "harfbuzz": "HarfBuzz implementation used by shaping verification.",
+    "implementation": "HarfBuzz backend selection: uharfbuzz, binary, or both.",
+    "browsers": "Browsers used by browser verification.",
+    "failOnWarning": "Treat verification warnings as build failures when enabled.",
+    "license": "Source-font license metadata policy.",
+    "policy": "warn, error, or ignore behavior for license checks.",
+}
 DEFAULT_DICTIONARY_CSV = """source,target
 чудное,тягостная
 мгновенье,вечность
@@ -107,6 +207,27 @@ DEFAULT_DEMO_CORPUS = """Я помню чудное мгновенье:
 И божество, и вдохновенье,
 И жизнь, и слезы, и любовь.
 """
+
+
+def _serialize_profile(config: ShieldFontConfig) -> str:
+    """Serialize a generated profile with editable field documentation."""
+
+    serialized = yaml.safe_dump(
+        config.model_dump(mode="json", by_alias=True, exclude_none=True),
+        allow_unicode=True,
+        default_flow_style=False,
+        sort_keys=False,
+    )
+    lines = [PROFILE_HEADER.rstrip()]
+    for line in serialized.splitlines():
+        match = re.match(r"^(?P<indent>\s*)(?P<key>[A-Za-z][A-Za-z0-9_-]*):", line)
+        if match:
+            comment = PROFILE_FIELD_COMMENTS.get(match.group("key"))
+            if comment:
+                indent = match.group("indent")
+                lines.append(f"{indent}# {comment}")
+        lines.append(line)
+    return "\n".join(lines) + "\n"
 
 
 class FontInspector(Protocol):
@@ -285,12 +406,7 @@ def initialize_project(
         if source_path != destination:
             shutil.copy2(source_path, destination)
 
-    serialized = yaml.safe_dump(
-        config.model_dump(mode="json", by_alias=True, exclude_none=True),
-        allow_unicode=True,
-        default_flow_style=False,
-        sort_keys=False,
-    )
+    serialized = _serialize_profile(config)
     config_path.write_text(serialized, encoding="utf-8")
     log_event(
         LOGGER,

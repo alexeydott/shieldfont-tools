@@ -17,6 +17,7 @@ from shieldfont.application.css import CssBuildOptions, CssFace, build_css
 from shieldfont.application.features import generate_feature_artifacts
 from shieldfont.application.ruleset import build_ruleset_from_config
 from shieldfont.config.loader import load_config
+from shieldfont.config.models import ShieldFontConfig
 from shieldfont.domain.errors import ErrorCode, ExitCode, ShieldFontError
 from shieldfont.domain.font_naming import (
     OUTPUT_FONT_SUBFAMILY,
@@ -78,13 +79,14 @@ def _publish_atomically(staging: Path, destination: Path) -> None:
 def build_project(
     config_path: Path,
     *,
+    config_override: ShieldFontConfig | None = None,
     output_dir: Path | None = None,
     source_path: Path | None = None,
     dictionary_path: Path | None = None,
 ) -> Path:
     """Build available stages into a temporary tree and publish atomically."""
 
-    config = load_config(config_path)
+    config = config_override or load_config(config_path)
     selected_source_path = (source_path or config.source.path).resolve()
     selected_dictionary_path = (
         dictionary_path.resolve() if dictionary_path is not None else None

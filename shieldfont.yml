@@ -1,83 +1,171 @@
-codec:
-  browserBuild: false
-  embedMappings: false
-  formats:
-  - esm
-  - cjs
-  packageName: '@shieldfont/project-codec'
-  unknownScopePolicy: no-op
-css:
-  assetBaseUrl: ./fonts/
-  classes:
-    neutral: sf-text
-    shield: sf-shield
-  embedFont: false
-  file: D:\projects\externals\ShieldFontTools\dist\shieldfont.css
-  fontDisplay: block
-  fontSynthesis: none
-font:
-  description: ShieldFont derivative
-  family: SegoeUI_shld
-  shieldFace:
-    family: ShieldFont
-  neutralFace:
-    enabled: true
-    family: SegoeUI Text
-  outputFormats:
-  - ttf
-  - woff2
-layout:
-  boundaryMode: fire-then-revert
-  defaultFeature: ccmp
-  defaultScopePolicy: fallback
-  maxEstimatedSubtableBytes: 40960
-  useExtensionLookups: true
-license:
-  policy: warn
-mapping:
-  caseMode: auto
-  crossScript: false
-  duplicatePolicy: error
-  mode: directed
-  normalization: NFC
-  selfMapPolicy: drop-with-warning
-  targetCollisionPolicy: error
-project:
-  id: shieldfont
-  outputDir: D:\projects\externals\ShieldFontTools\dist
-  reproducible: true
-  version: 0.1.0
+# ShieldFont Toolchain generation profile.
+# Edit the values below to control the generated font and delivery artifacts.
+# Paths are relative to this shieldfont.yml file unless an absolute path is used.
+#
+# schema: profile format version; it selects the validation contract.
+# project: project identity, reproducibility, and the default output directory.
+# source: input font, accepted containers, and variable-font instance axes.
+# font: generated family names, descriptions, and TTF/WOFF2 output formats.
+# layout: OpenType feature and lookup-size policies used during font building.
+# scopes: per-script processing scopes, shaping settings, and dictionaries.
+# mapping: dictionary conflict, case, normalization, and cross-script policies.
+# css: generated CSS path, URL/font-display behavior, and optional embedding.
+# codec: JavaScript codec package formats and whether browser assets are built.
+# verification: enabled verification levels, HarfBuzz, browsers, and warnings.
+# license: behavior when source-font licensing metadata does not satisfy policy.
+#
+# Changing source, scopes, mapping, or layout changes generated glyphs/features.
+# Changing font changes font naming and manifest metadata. Changing css or codec
+# changes delivery assets. Changing verification changes checks performed, not
+# the font itself. The CLI can override the main inputs without editing this file.
+# Profile contract version used for validation.
 schema: shieldfont/v1
-scopes:
-- dictionaries:
-  - D:\projects\externals\ShieldFontTools\dictionaries\default.csv
-  encoder:
-    locales: []
-    sourceScripts: []
-  id: default
-  shaping:
-    defaultLanguage: true
-    languages: []
-    openTypeScript: DFLT
-    targetScripts: []
+# Project identity and output/reproducibility settings.
+project:
+  # Stable identifier used in manifests and scope records.
+  id: shieldfont
+  # Version written to generated font metadata and the manifest.
+  version: 0.1.0
+  # Default atomic publication directory for generated artifacts.
+  outputDir: dist
+  # Keep build serialization deterministic when enabled.
+  reproducible: true
+# Source-font input and variable-font selection settings.
 source:
+  # Input font path; changing it changes the source glyph inventory.
+  path: .fonts\Source.ttf
+  # Required outline technology; glyf is the supported TrueType outline.
+  requiredOutline: glyf
+  # Accepted source containers before normalization.
   allowedContainers:
   - ttf
   - woff2
+  # Variable-font instance selection applied before generation.
   instance:
+    # Axis values such as wght or wdth used for the normalized instance.
     axes: {}
-  path: D:\projects\externals\ShieldFontTools\.fonts\segoepr.ttf
-  requiredOutline: glyf
+# Generated font naming, description, and output container settings.
+font:
+  # Generated family name; affects font filenames, names, and manifest metadata.
+  family: ShieldFont
+  # Human-readable description stored with generated project metadata.
+  description: ShieldFont derivative
+  # Font containers to publish, normally ttf and/or woff2.
+  outputFormats:
+  - ttf
+  - woff2
+  # CSS-visible ShieldFont face naming.
+  shieldFace:
+    # Generated family name; affects font filenames, names, and manifest metadata.
+    family: ShieldFont
+  # Optional unchanged comparison face and its CSS family name.
+  neutralFace:
+    # Whether the neutral comparison font is generated.
+    enabled: true
+    # Generated family name; affects font filenames, names, and manifest metadata.
+    family: ShieldFont Text
+# OpenType feature generation and lookup safety policies.
+layout:
+  # Feature tag that receives generated mapping lookups.
+  defaultFeature: ccmp
+  # Lookup boundary behavior used around transformed text.
+  boundaryMode: fire-then-revert
+  # Safety limit for generated OpenType subtables.
+  maxEstimatedSubtableBytes: 40960
+  # Permit extension lookups when ordinary lookup space is insufficient.
+  useExtensionLookups: true
+  # Behavior when text does not match a configured scope.
+  defaultScopePolicy: fallback
+# Independent dictionary and shaping pipelines for scripts/locales.
+scopes:
+- id: default
+  # Input-side locale and source-script selection for a scope.
+  encoder:
+    # Locales accepted by the scope's encoder.
+    locales: []
+    # Unicode/script sources eligible for the scope.
+    sourceScripts: []
+  # OpenType script/language settings for the generated scope.
+  shaping:
+    # Scripts targeted by shaping rules.
+    targetScripts: []
+    # Four-character OpenType script tag for generated lookups.
+    openTypeScript: DFLT
+    # Whether the scope is used as the default language system.
+    defaultLanguage: true
+    # OpenType language tags associated with the scope.
+    languages: []
+  # CSV mappings consumed by the scope; they change generated substitutions.
+  dictionaries:
+  - dictionaries\default.csv
+# Dictionary interpretation and conflict policies.
+mapping:
+  # Mapping direction semantics: directed, bidirectional, or involution.
+  mode: directed
+  # Resolution when a source appears more than once.
+  duplicatePolicy: error
+  # Resolution when multiple sources produce one target.
+  targetCollisionPolicy: error
+  # Handling of mappings whose source and target are identical.
+  selfMapPolicy: drop-with-warning
+  # Allow mappings that cross script boundaries.
+  crossScript: false
+  # Case handling before dictionary matching.
+  caseMode: auto
+  # Unicode normalization applied before matching.
+  normalization: NFC
+# CSS delivery settings generated beside the font assets.
+css:
+  # Configured CSS filename; the build currently publishes shieldfont.css.
+  file: shieldfont.css
+  # URL prefix used by generated @font-face declarations.
+  assetBaseUrl: ./fonts/
+  # CSS font-display value controlling browser font loading behavior.
+  fontDisplay: block
+  # CSS font-synthesis policy for the generated faces.
+  fontSynthesis: none
+  # Embed font data in CSS instead of referencing external font files.
+  embedFont: false
+  # CSS class names emitted for ShieldFont and neutral text faces.
+  classes:
+    # CSS class selecting the generated ShieldFont face.
+    shield: sf-shield
+    # CSS class selecting the neutral comparison face.
+    neutral: sf-text
+# JavaScript codec package and browser-delivery settings.
+codec:
+  # Package name used by generated codec metadata.
+  packageName: '@shieldfont/project-codec'
+  # JavaScript module formats to emit.
+  formats:
+  - esm
+  - cjs
+  # Include browser codec assets in the generated delivery set.
+  browserBuild: false
+  # Embed mapping data in codec output when enabled.
+  embedMappings: false
+  # Codec behavior for an unknown scope identifier.
+  unknownScopePolicy: no-op
+# Post-build verification levels and failure policy.
 verification:
-  browsers:
-  - chromium
-  - firefox
-  - webkit
-  failOnWarning: false
-  harfbuzz:
-    implementation: both
+  # Verification stages such as structural, shaping, codec, and browser.
   levels:
   - structural
   - shaping
   - codec
   - browser
+  # HarfBuzz implementation used by shaping verification.
+  harfbuzz:
+    # HarfBuzz backend selection: uharfbuzz, binary, or both.
+    implementation: both
+  # Browsers used by browser verification.
+  browsers:
+  - chromium
+  - firefox
+  - webkit
+  # Treat verification warnings as build failures when enabled.
+  failOnWarning: false
+# Source-font license metadata policy.
+license:
+  # warn, error, or ignore behavior for license checks.
+  policy: warn

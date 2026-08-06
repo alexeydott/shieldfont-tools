@@ -179,6 +179,19 @@ def test_initialize_project_creates_template_and_uses_font_metadata(
         inspect_font=inspect,
     )
     assert load_config(custom_config_path).font.family == "SourceFamily_demo"
+    generated_profile = custom_config_path.read_text(encoding="utf-8")
+    assert (
+        "# Source-font input and variable-font selection settings."
+        in generated_profile
+    )
+    assert (
+        "# Generated family name; affects font filenames, names, and manifest metadata."
+        in generated_profile
+    )
+    assert (
+        "# CSV mappings consumed by the scope; they change generated substitutions."
+        in generated_profile
+    )
 
 
 def test_default_dictionary_is_created_only_when_dictionary_files_are_missing(

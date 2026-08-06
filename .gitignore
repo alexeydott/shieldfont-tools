@@ -54,6 +54,7 @@ temp/
 *.swo
 *.bak
 *.log
+shieldfont.yml.previous
 
 # Generated dictionary exports and verification artifacts
 dictionaries/*.json

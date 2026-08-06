@@ -26,9 +26,13 @@ dev = [
   "ruff>=0.12",
   "types-PyYAML>=6.0",
 ]
+portable = [
+  "pyinstaller>=6.14",
+]
 
 [project.scripts]
 shieldfont = "shieldfont.presentation.cli.main:main"
+shieldfont-generate = "shieldfont.presentation.cli.generate_main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

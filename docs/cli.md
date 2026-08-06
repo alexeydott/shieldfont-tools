@@ -4,6 +4,46 @@
 
 The executable is `shieldfont`.
 
+The standalone `shieldfont-generate` executable builds artifacts from a YAML
+profile and lets explicit command-line values override the profile:
+
+```powershell
+shieldfont-generate run shieldfont.yml `
+  --source .fonts/Source.ttf `
+  --dictionary dictionaries/ru-alpha.csv `
+  --output-dir dist/ru `
+  --family ShieldFontRu `
+  --font-display swap `
+  --json
+```
+
+The profile is loaded first, then supplied overrides take precedence. Relative
+override paths are resolved from the profile directory. Supported overrides are
+`--output-dir`, `--source`, `--dictionary`, `--family`, `--postfix`, `--project-id`,
+`--project-version`, `--font-display`, and `--embed-font/--no-embed-font`.
+`--postfix` derives the generated family from the original source-font family
+after normalization and appends the supplied suffix, for example
+`--postfix _ru`. Use `--family` when an exact family name is required; do not
+combine `--family` and `--postfix`.
+`--strict/--non-strict` controls unknown profile-field validation. The command
+uses the same atomic build pipeline as `shieldfont build` and performs no
+network or LLM requests.
+
+## Portable Windows executable
+
+Build a single Windows x64 executable under `.\build`:
+
+```powershell
+python -m pip install -e ".[portable]"
+.\scripts\build-portable.ps1
+.\build\shieldfont-generate.exe run shieldfont.yml --help
+```
+
+The script requires a 64-bit Windows Python interpreter. PyInstaller work and
+specification files are placed under ignored `build\.pyinstaller-*` directories
+and removed after a successful build. Use `-KeepWork` to retain them for
+diagnostics after a successful build.
+
 | Command | Purpose |
 |---|---|
 | `init` | Create a project configuration |
