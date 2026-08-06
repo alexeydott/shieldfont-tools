@@ -13,6 +13,25 @@ emits canonical public/private manifests, scans public metadata, and records
 the deterministic GSUB Format 3 fallback. Existing `shieldfont/v1` projects
 remain on the compatibility profile by default.
 
+## New capabilities
+
+The current profile contract keeps the original CSV workflow while adding an
+opt-in document-bound workflow:
+
+| Capability | What it provides |
+|---|---|
+| Mapping v2 | Ordered grammar groups, aliases, deterministic seed/nonce selection, and collision checks. |
+| Document subsets | Select only groups referenced by offline UTF-8 inventory files. |
+| Future coverage | Retain a bounded number of deterministic reserve aliases for later document revisions. |
+| Bundle identity | Derive a stable opaque cache identity from the selected mapping, generated font, inventory, nonce, tenant, and profile options. |
+| Artifact tiers | Separate digest-only public delivery files from exact private mapping/audit files and verification reports. |
+| Privacy gates | Scan public artifacts for raw mapping hints, private files, absolute paths, timestamps, and glyph names before atomic publication. |
+| GSUB safety | Evaluate Format 2 size estimates while retaining deterministic Format 3 until shaping validation approves Format 2. |
+| Safe defaults | Keep compatibility behavior, browser mapping exposure, and mapping embedding disabled unless explicitly enabled. |
+
+Document-bound builds are still cost-raising/provenance tooling, not
+cryptography, DRM, confidentiality, or an un-scrapeable system.
+
 ## Purpose
 
 Use it to create reproducible [ShieldFont](https://shieldfont.org/) variants from a TrueType source font
@@ -63,4 +82,6 @@ Profile settings are documented in [`docs/configuration.md`](docs/configuration.
 Runnable compatibility and document-bound profiles are in
 [`examples/`](examples/README.md).
 When `serve` starts in a project root without `shieldfont.yml`, it creates the
-default project structure automatically.
+default project structure automatically, including the default dictionary and
+demo corpus. From the `build` directory use
+`.\shieldfont-generate.exe serve --project-root .. --port 8777`.
