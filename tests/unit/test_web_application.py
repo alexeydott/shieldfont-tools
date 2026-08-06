@@ -121,6 +121,65 @@ def test_web_actions_reject_config_credentials_and_unknown_fields(
         actions._validate_config_update({"unknown": "value"})
 
 
+def test_web_config_metadata_redacts_protection_private_inputs(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "shieldfont.yml").write_text(
+        """
+schema: shieldfont/v1
+protection:
+  mappingContract: shieldfont.mapping.v2
+  seed: private-seed
+  documentNonce: private-nonce
+""",
+        encoding="utf-8",
+    )
+
+    parameters = WebActions(tmp_path)("config-metadata", {})["parameters"]
+
+    assert parameters["protection"]["seed"] == "<redacted>"
+    assert parameters["protection"]["documentNonce"] == "<redacted>"
+
+
+def test_project_editor_redacts_and_preserves_protection_private_inputs(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "shieldfont.yml"
+    project.write_text(
+        """
+schema: shieldfont/v1
+protection:
+  mappingContract: shieldfont.mapping.v2
+  seed: private-seed
+  documentNonce: private-nonce
+""",
+        encoding="utf-8",
+    )
+    actions = WebActions(tmp_path)
+
+    loaded = actions("project-read", {})
+
+    assert "private-seed" not in loaded["content"]
+    assert "private-nonce" not in loaded["content"]
+    assert loaded["content"].count("<redacted>") == 2
+
+    actions(
+        "project-save",
+        {
+            "content": loaded["content"].replace(
+                "schema: shieldfont/v1",
+                "schema: shieldfont/v1\nproject:\n  id: updated",
+            )
+        },
+    )
+
+    saved = project.read_text(encoding="utf-8")
+    assert "private-seed" in saved
+    assert "private-nonce" in saved
+    assert "<redacted>" not in saved
+    assert "id: updated" in saved
+
+
 def test_web_actions_validates_generated_default_dictionary_as_directed(
     tmp_path: Path,
 ) -> None:

@@ -103,12 +103,15 @@ class NormalizedRuleset:
     schema: str
     scopes: tuple[ScopeRecord, ...]
     ruleset_hash: str
+    mapping_contract: Mapping[str, object] | None = None
 
     def to_dict(self, *, include_hash: bool = True) -> dict[str, object]:
         payload: dict[str, object] = {
             "schema": self.schema,
             "scopes": [scope.to_dict() for scope in self.scopes],
         }
+        if self.mapping_contract is not None:
+            payload["mappingContract"] = dict(self.mapping_contract)
         if include_hash:
             payload["rulesetHash"] = self.ruleset_hash
         return payload
@@ -189,14 +192,20 @@ class NormalizedRuleset:
         return best[0]
 
 
-def build_ruleset(scopes: Sequence[ScopeRecord]) -> NormalizedRuleset:
+def build_ruleset(
+    scopes: Sequence[ScopeRecord],
+    *,
+    mapping_contract: Mapping[str, object] | None = None,
+) -> NormalizedRuleset:
     """Build a canonical ruleset and derive its content hash."""
 
     ordered_scopes = tuple(sorted(scopes, key=lambda scope: scope.scope_id))
-    payload = {
+    payload: dict[str, object] = {
         "schema": "shieldfont-ruleset/v1",
         "scopes": [scope.to_dict() for scope in ordered_scopes],
     }
+    if mapping_contract is not None:
+        payload["mappingContract"] = dict(mapping_contract)
     serialized = json.dumps(
         payload,
         ensure_ascii=False,
@@ -208,6 +217,7 @@ def build_ruleset(scopes: Sequence[ScopeRecord]) -> NormalizedRuleset:
         schema="shieldfont-ruleset/v1",
         scopes=ordered_scopes,
         ruleset_hash=ruleset_hash,
+        mapping_contract=mapping_contract,
     )
 
 

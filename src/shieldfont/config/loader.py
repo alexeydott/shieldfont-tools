@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Union, get_args, get_origin
 
 import yaml
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, SecretStr, ValidationError
 
 from shieldfont.config.models import ShieldFontConfig
 from shieldfont.domain.errors import ErrorCode, ExitCode, ShieldFontError
@@ -118,6 +118,9 @@ def resolve_config_paths(config: ShieldFontConfig, base_dir: Path) -> ShieldFont
         scope.dictionaries = [
             _resolve_path(dictionary, base_dir) for dictionary in scope.dictionaries
         ]
+    resolved.protection.inventory = [
+        _resolve_path(path, base_dir) for path in resolved.protection.inventory
+    ]
     return resolved
 
 
@@ -188,12 +191,28 @@ def load_config(path: Path, *, strict: bool = True) -> ShieldFontConfig:
     return resolved
 
 
-def dump_resolved_config(config: ShieldFontConfig) -> str:
-    """Serialize a resolved configuration deterministically without secret values."""
+def dump_resolved_config(
+    config: ShieldFontConfig,
+    *,
+    reveal_secrets: bool = False,
+) -> str:
+    """Serialize deterministically, redacting private inputs by default."""
 
-    data = config.model_dump(mode="json", by_alias=True, exclude_none=True)
+    data = config.model_dump(mode="python", by_alias=True, exclude_none=True)
+
+    def serialize_value(value: Any) -> Any:
+        if isinstance(value, SecretStr):
+            return value.get_secret_value() if reveal_secrets else "<redacted>"
+        if isinstance(value, Mapping):
+            return {key: serialize_value(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [serialize_value(item) for item in value]
+        if isinstance(value, Path):
+            return str(value)
+        return value
+
     return yaml.safe_dump(
-        data,
+        serialize_value(data),
         allow_unicode=True,
         default_flow_style=False,
         sort_keys=True,

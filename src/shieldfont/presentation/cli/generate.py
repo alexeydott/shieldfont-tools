@@ -123,6 +123,70 @@ def generate_command(
             help="Override CSS font embedding.",
         ),
     ] = None,
+    protection_profile: Annotated[
+        str | None,
+        typer.Option(
+            "--protection-profile",
+            help="Override compatibility or document-bound profile behavior.",
+        ),
+    ] = None,
+    mapping_contract: Annotated[
+        str | None,
+        typer.Option(
+            "--mapping-contract",
+            help="Override shieldfont.mapping.v1 or shieldfont.mapping.v2.",
+        ),
+    ] = None,
+    mapping_seed: Annotated[
+        str | None,
+        typer.Option(
+            "--mapping-seed",
+            help="Private deterministic alias-selection seed for mapping v2.",
+        ),
+    ] = None,
+    document_nonce: Annotated[
+        str | None,
+        typer.Option(
+            "--document-nonce",
+            help="Private document nonce; public metadata receives only a digest.",
+        ),
+    ] = None,
+    tenant_id: Annotated[
+        str | None,
+        typer.Option(
+            "--tenant-id",
+            help="Private cache-isolation input; public metadata receives a digest.",
+        ),
+    ] = None,
+    inventory: Annotated[
+        list[Path] | None,
+        typer.Option(
+            "--inventory",
+            help="Document inventory input; repeat for multiple files.",
+        ),
+    ] = None,
+    reserve_aliases: Annotated[
+        int | None,
+        typer.Option(
+            "--reserve-aliases",
+            min=0,
+            help="Retain deterministic future-coverage entries.",
+        ),
+    ] = None,
+    scan_public_artifacts: Annotated[
+        bool | None,
+        typer.Option(
+            "--scan-public-artifacts/--no-scan-public-artifacts",
+            help="Override the pre-publication privacy metadata scan.",
+        ),
+    ] = None,
+    gsub_optimization: Annotated[
+        str | None,
+        typer.Option(
+            "--gsub-optimization",
+            help="Override auto, format2, or deterministic format3 behavior.",
+        ),
+    ] = None,
     strict: Annotated[
         bool,
         typer.Option(
@@ -169,6 +233,15 @@ Examples:
         project_version=project_version,
         font_display=font_display,
         embed_font=embed_font,
+        protection_profile=protection_profile,
+        mapping_contract=mapping_contract,
+        mapping_seed=mapping_seed,
+        document_nonce=document_nonce,
+        tenant_id=tenant_id,
+        inventory_paths=inventory,
+        reserve_aliases=reserve_aliases,
+        scan_public_artifacts=scan_public_artifacts,
+        gsub_optimization=gsub_optimization,
         strict=strict,
     )
     output = build_project(profile_path, config_override=config)

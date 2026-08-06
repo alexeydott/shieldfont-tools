@@ -10,7 +10,8 @@ from shieldfont.application.init_project import (
     ensure_demo_corpus,
     initialize_project,
 )
-from shieldfont.config.loader import load_config
+from shieldfont.config.loader import dump_resolved_config, load_config
+from shieldfont.config.models import ShieldFontConfig
 from shieldfont.config.schema import generate_schema
 from shieldfont.domain.errors import ErrorCode, ShieldFontError
 from shieldfont.domain.font import FontSummary
@@ -78,11 +79,42 @@ project:
     assert forbidden_error.value.code is ErrorCode.CONFIG_ENV_REFERENCE
 
 
+def test_resolved_config_dump_redacts_private_inputs_by_default() -> None:
+    config = ShieldFontConfig.model_validate(
+        {
+            "schema": "shieldfont/v1",
+            "protection": {
+                "mappingContract": "shieldfont.mapping.v2",
+                "seed": "private-seed",
+                "documentNonce": "private-nonce",
+            },
+        }
+    )
+
+    redacted = dump_resolved_config(config)
+    revealed = dump_resolved_config(config, reveal_secrets=True)
+
+    assert "private-seed" not in redacted
+    assert "private-nonce" not in redacted
+    assert redacted.count("<redacted>") == 2
+    assert "private-seed" in revealed
+    assert "private-nonce" in revealed
+
+
 def test_schema_is_published_for_shieldfont_v1() -> None:
     schema = generate_schema()
 
     assert schema["$id"] == "https://shieldfont.dev/schema/shieldfont-v1.schema.json"
     assert schema["properties"]["schema"]["const"] == "shieldfont/v1"
+    protection = schema["$defs"]["ProtectionSection"]["properties"]
+    assert protection["profile"]["default"] == "compatibility"
+    assert protection["mappingContract"]["default"] == "shieldfont.mapping.v1"
+    assert protection["documentNonce"]["anyOf"][0]["format"] == "password"
+    assert protection["documentNonce"]["anyOf"][0]["writeOnly"] is True
+    assert (
+        schema["$defs"]["LayoutSection"]["properties"]["gsubOptimization"]["default"]
+        == "auto"
+    )
 
 def test_schema_describes_every_configuration_element() -> None:
     schema = generate_schema()

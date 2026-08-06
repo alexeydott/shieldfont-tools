@@ -43,6 +43,7 @@ PROFILE_HEADER = """# ShieldFont Toolchain generation profile.
 # layout: OpenType feature and lookup-size policies used during font building.
 # scopes: per-script processing scopes, shaping settings, and dictionaries.
 # mapping: dictionary conflict, case, normalization, and cross-script policies.
+# protection: optional versioned mappings, document subsets, and privacy scans.
 # css: generated CSS path, URL/font-display behavior, and optional embedding.
 # codec: JavaScript codec package formats and whether browser assets are built.
 # verification: enabled verification levels, HarfBuzz, browsers, and warnings.
@@ -87,6 +88,9 @@ PROFILE_FIELD_COMMENTS = {
     "useExtensionLookups": (
         "Permit extension lookups when ordinary lookup space is insufficient."
     ),
+    "gsubOptimization": (
+        "Evaluate GSUB Format 2 or use the deterministic Format 3 fallback."
+    ),
     "defaultScopePolicy": "Behavior when text does not match a configured scope.",
     "scopes": "Independent dictionary and shaping pipelines for scripts/locales.",
     "encoder": "Input-side locale and source-script selection for a scope.",
@@ -108,6 +112,19 @@ PROFILE_FIELD_COMMENTS = {
     "crossScript": "Allow mappings that cross script boundaries.",
     "caseMode": "Case handling before dictionary matching.",
     "normalization": "Unicode normalization applied before matching.",
+    "protection": (
+        "Compatibility or document-bound mapping, subset, identity, and "
+        "privacy settings."
+    ),
+    "profile": "Compatibility behavior or the document-bound canonical profile.",
+    "mappingContract": "Legacy v1 mappings or grouped shieldfont.mapping.v2 aliases.",
+    "seed": "Private deterministic alias-selection seed; never public metadata.",
+    "documentNonce": "Private document nonce; only a digest may be reported.",
+    "tenantId": "Private cache-isolation input; only a digest may be reported.",
+    "inventory": "Document files used to select source groups for a subset.",
+    "reserveAliases": "Additional deterministic future-coverage entries to retain.",
+    "reserve": "Explicit source or alias entries to retain beyond the inventory.",
+    "scanPublicArtifacts": "Scan the public tier before atomic publication.",
     "css": "CSS delivery settings generated beside the font assets.",
     "file": "Configured CSS filename; the build currently publishes shieldfont.css.",
     "assetBaseUrl": "URL prefix used by generated @font-face declarations.",

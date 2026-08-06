@@ -7,6 +7,12 @@ TrueType fonts with deterministic OpenType substitutions. It combines font
 normalization, CSV dictionary processing, GSUB feature generation, CSS/codec
 output, verification, and a local web GUI.
 
+The additive document-bound profile also accepts versioned grouped alias
+contracts, selects inventory-bound subsets, derives opaque cache identities,
+emits canonical public/private manifests, scans public metadata, and records
+the deterministic GSUB Format 3 fallback. Existing `shieldfont/v1` projects
+remain on the compatibility profile by default.
+
 ## Purpose
 
 Use it to create reproducible [ShieldFont](https://shieldfont.org/) variants from a TrueType source font
@@ -54,3 +60,5 @@ the repository root:
 The full CLI, including dictionary, font, feature, CSS, verification, and
 migration commands, is documented in [`docs/cli.md`](docs/cli.md).
 Profile settings are documented in [`docs/configuration.md`](docs/configuration.md).
+Runnable compatibility and document-bound profiles are in
+[`examples/`](examples/README.md).

@@ -1,0 +1,32 @@
+# Document-bound build retaining deterministic future-coverage aliases.
+schema: shieldfont/v1
+project:
+  id: example-document-bound-reserve
+  version: 2.0.0
+  outputDir: ../../dist/examples/document-bound-reserve
+  reproducible: true
+  sourceDateEpoch: 0
+source:
+  path: ../../.fonts/Source.ttf
+font:
+  family: ShieldFont Reserved Example
+  outputFormats: [ttf, woff2]
+layout:
+  gsubOptimization: format2
+scopes:
+  - id: default
+    dictionaries:
+      - ../mappings/document-bound.json
+mapping:
+  mode: directed
+protection:
+  profile: document-bound
+  mappingContract: shieldfont.mapping.v2
+  seed: demo-private-build-seed
+  documentNonce: demo-reserve-2026-08-06
+  tenantId: demo-private-tenant
+  inventory:
+    - ../content/reserve.txt
+  reserveAliases: 2
+  reserve: []
+  scanPublicArtifacts: true

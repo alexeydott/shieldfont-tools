@@ -30,5 +30,6 @@ for any future code copied or adapted from upstream.
 
 ## Verification
 
-`tests/fixtures/upstream/provenance.json` binds the baseline to commit
-`d6efb2d3972569628e870ff2767cd29412c245ee` and the reviewed script hashes.
+`tests/fixtures/upstream/provenance.json` binds the baseline to the published
+upstream commit `851b1be3fac5c80cd97b29572ce227c469467a5f` and the reviewed
+script hashes.

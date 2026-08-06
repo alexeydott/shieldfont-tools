@@ -1,0 +1,26 @@
+# Existing shieldfont/v1 CSV workflow.
+schema: shieldfont/v1
+project:
+  id: example-compatibility
+  version: 1.0.0
+  outputDir: ../../dist/examples/compatibility
+  reproducible: true
+  sourceDateEpoch: 0
+source:
+  path: ../../.fonts/Source.ttf
+font:
+  family: ShieldFont Compatibility Example
+  outputFormats: [ttf, woff2]
+scopes:
+  - id: default
+    dictionaries:
+      - ../../dictionaries/default.csv
+mapping:
+  mode: directed
+protection:
+  profile: compatibility
+  mappingContract: shieldfont.mapping.v1
+  inventory: []
+  reserveAliases: 0
+  reserve: []
+  scanPublicArtifacts: false

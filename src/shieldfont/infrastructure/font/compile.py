@@ -11,6 +11,34 @@ from fontTools.ttLib.tables import otTables  # type: ignore[import-untyped]
 from shieldfont.domain.errors import ErrorCode, ExitCode, ShieldFontError
 
 
+def gsub_optimization_diagnostics(
+    *,
+    boundary_glyphs: int,
+    substituted_glyphs: int,
+    optimization: str,
+) -> dict[str, object]:
+    """Select the validated Format 3 path and report any Format 2 fallback."""
+
+    format2_estimate = 96 + (boundary_glyphs + substituted_glyphs) * 2
+    format3_estimate = 64 + (boundary_glyphs + substituted_glyphs) * 4
+    class_candidate = optimization in {"auto", "format2"} and (
+        optimization == "format2" or format2_estimate < format3_estimate
+    )
+    return {
+        "requested": optimization,
+        "selected": "format3",
+        "fallback": (
+            "shaping-validation-required"
+            if class_candidate
+            else "not-required"
+        ),
+        "format2EstimatedBytes": format2_estimate,
+        "format3EstimatedBytes": format3_estimate,
+        "boundaryGlyphs": boundary_glyphs,
+        "substitutedGlyphs": substituted_glyphs,
+    }
+
+
 def compile_feature_source(font: TTFont, feature_path: Path) -> None:
     """Compile a generated feature source into an in-memory TrueType font."""
 
@@ -31,11 +59,18 @@ def add_fire_then_revert_context(
     *,
     lookup_indices: tuple[int, int, int, int],
     generated_glyphs: set[str],
-) -> None:
+    optimization: str = "auto",
+) -> dict[str, object]:
     """Make the two generated reverter lookups conditional on letter context."""
 
     if not generated_glyphs or "GSUB" not in font:
-        return
+        return {
+            "requested": optimization,
+            "selected": "format3",
+            "fallback": "empty-generated-set",
+            "format2EstimatedBytes": 0,
+            "format3EstimatedBytes": 0,
+        }
     table = font["GSUB"].table
     lookups = table.LookupList.Lookup
     ligature_index, multiple_index, before_index, after_index = lookup_indices
@@ -78,7 +113,19 @@ def add_fire_then_revert_context(
     boundary_glyphs = letter_glyphs | generated_glyphs
     substituted_glyphs = generated_glyphs & glyph_set
     if not boundary_glyphs or not substituted_glyphs:
-        return
+        return {
+            "requested": optimization,
+            "selected": "format3",
+            "fallback": "empty-boundary-set",
+            "format2EstimatedBytes": 0,
+            "format3EstimatedBytes": 0,
+        }
+
+    diagnostics = gsub_optimization_diagnostics(
+        boundary_glyphs=len(boundary_glyphs),
+        substituted_glyphs=len(substituted_glyphs),
+        optimization=optimization,
+    )
 
     def chain_lookup(*, before: bool) -> otTables.Lookup:
         chain = otTables.ChainContextSubst()
@@ -107,3 +154,4 @@ def add_fire_then_revert_context(
 
     lookups[before_index] = chain_lookup(before=True)
     lookups[after_index] = chain_lookup(before=False)
+    return diagnostics

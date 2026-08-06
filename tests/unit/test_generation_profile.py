@@ -70,6 +70,35 @@ def test_invalid_profile_override_has_stable_error(tmp_path: Path) -> None:
     assert error.value.stage == "config.override"
 
 
+def test_document_bound_overrides_are_validated_and_resolved(
+    tmp_path: Path,
+) -> None:
+    profile = _write_profile(tmp_path / "profile.yml")
+    inventory = tmp_path / "content.txt"
+    inventory.write_text("alpha", encoding="utf-8")
+
+    config = resolve_generation_profile(
+        profile,
+        protection_profile="document-bound",
+        mapping_seed="private-seed",
+        document_nonce="private-nonce",
+        tenant_id="private-tenant",
+        inventory_paths=[Path("content.txt")],
+        reserve_aliases=2,
+        scan_public_artifacts=True,
+        gsub_optimization="format2",
+    )
+
+    assert config.protection.mapping_contract == "shieldfont.mapping.v2"
+    assert config.protection.inventory == [inventory.resolve()]
+    assert config.protection.seed.get_secret_value() == "private-seed"
+    assert config.protection.document_nonce.get_secret_value() == "private-nonce"
+    assert config.protection.tenant_id.get_secret_value() == "private-tenant"
+    assert config.protection.reserve_aliases == 2
+    assert config.protection.scan_public_artifacts is True
+    assert config.layout.gsub_optimization == "format2"
+
+
 def test_postfix_override_uses_original_source_family(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -212,6 +241,11 @@ def test_documented_cli_examples_are_present_in_help() -> None:
     assert "MyShieldFont" in result.stdout
     assert "--dictionary" in result.stdout
     assert "default.csv" in result.stdout
+    assert "--protection-profile" in result.stdout
+    assert "--mapping-contract" in result.stdout
+    assert "--document-nonce" in result.stdout
+    assert "--inventory" in result.stdout
+    assert "--gsub-optimization" in result.stdout
     assert (
         ".\\build\\shieldfont-generate.exe serve --port 8765"
         in result.stdout

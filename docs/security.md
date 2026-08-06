@@ -16,6 +16,30 @@ un-scrapeable.
   reports.
 - Treat the upstream submodule as read-only reference code.
 
+## Document-bound artifact boundary
+
+The `document-bound` profile derives an opaque bundle/cache identity from the
+document inventory, selected mapping, source font, nonce digest, tenant digest,
+and compatibility settings. This is deterministic cache separation, not a
+cryptographic security boundary.
+
+Canonical output separates:
+
+- public encoder/font/CSS artifacts;
+- private reverse mappings, audit font, and ruleset;
+- verification reports and the public-tier privacy scan.
+
+Raw seed, document nonce, tenant ID, source paths, and uncontrolled timestamps
+must not appear in public manifests or diagnostics. The scan fails atomic
+publication if the public tier contains private canonical filenames, absolute
+build paths, timestamps, mapping hints outside `mapping.json`, unreadable fonts,
+or web fonts retaining glyph names. The canonical WOFF2 uses `post` format 3.
+
+The public `mapping.json` contains metadata and digests only. The exact
+source-to-target encoder mapping is stored under `private/mapping.json`.
+Shipping that private file or embedding it in client JavaScript publishes the
+decoder and defeats the private-mapping cost increase.
+
 ## Local web server
 
 `shieldfont serve` binds to `127.0.0.1` by default, serves same-origin static
