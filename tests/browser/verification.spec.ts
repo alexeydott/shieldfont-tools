@@ -1123,19 +1123,15 @@ test("complete GUI workflow covers every user-facing capability", async ({ page 
     });
   });
   await page.route("**/api/files", async (route) => {
-    const response = await route.fetch();
-    const payload = await response.json() as {
-      files?: Array<{ path: string; kind: string; size?: number }>;
-    };
     await route.fulfill({
-      response,
-      json: {
-        ...payload,
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
         files: [
-          ...(payload.files || []).filter((file) => file.kind !== "font"),
           { path: sourceFontPath, kind: "font", size: 1 },
+          { path: "dictionaries/default.csv", kind: "dictionary", size: 1 },
         ],
-      },
+      }),
     });
   });
   await page.route("**/api/source-font**", async (route) => {
@@ -1143,6 +1139,13 @@ test("complete GUI workflow covers every user-facing capability", async ({ page 
       status: 200,
       contentType: "font/woff2",
       body: readFileSync("deps/shieldfont/packages/font/optik-a.woff2"),
+    });
+  });
+  await page.route("**/api/shieldfont.css", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "text/css",
+      body: "",
     });
   });
   await page.route("**/api/action", async (route) => {
