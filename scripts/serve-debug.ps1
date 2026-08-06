@@ -49,7 +49,7 @@ try {
         --project-root $root `
         --host $BindHost `
         --port $Port `
-        --fonts-root $FontsRoot 2>&1 | Tee-Object -FilePath $logPath -Append
+        --fonts-dir $FontsRoot 2>&1 | Tee-Object -FilePath $logPath -Append
     exit $LASTEXITCODE
 } finally {
     $ErrorActionPreference = $previousErrorActionPreference

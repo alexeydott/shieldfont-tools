@@ -210,3 +210,19 @@ def test_documented_cli_examples_are_present_in_help() -> None:
     assert "--postfix _ru" in result.stdout
     assert "--family MyShieldFont" in result.stdout
     assert "--dictionary dictionaries\\default.csv" in result.stdout
+    assert (
+        "shieldfont-generate serve --project-root . --fonts-dir .fonts"
+        in result.stdout
+    )
+
+
+def test_portable_cli_server_help_exposes_port() -> None:
+    result = CliRunner().invoke(
+        generate_cli.generate_app,
+        ["serve", "--help"],
+    )
+
+    assert result.exit_code == 0
+    assert "--port" in result.stdout
+    assert "--project-root" in result.stdout
+    assert "--fonts-dir" in result.stdout

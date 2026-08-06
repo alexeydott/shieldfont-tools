@@ -447,8 +447,9 @@ def serve_command(
     fonts_root: Annotated[
         Path,
         typer.Option(
+            "--fonts-dir",
             "--fonts-root",
-            help="Directory from which source fonts may be selected.",
+            help="Project-relative directory from which source fonts are selected.",
         ),
     ] = Path(".fonts"),
 ) -> None:
@@ -456,6 +457,7 @@ def serve_command(
 
     root = project_root.resolve()
     config = load_config(root / "shieldfont.yml")
+    actions = WebActions(root, fonts_root)
     source_path = config.source.path
     if not source_path.is_absolute():
         source_path = root / source_path
@@ -475,7 +477,7 @@ def serve_command(
             static_root=static_root,
             fonts_root=fonts_root,
         ),
-        WebActions(root, fonts_root),
+        actions,
     )
 
 

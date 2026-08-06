@@ -39,6 +39,18 @@ python -m pip install -e ".[portable]"
 .\build\shieldfont-generate.exe run shieldfont.yml --help
 ```
 
+The portable executable also hosts the local GUI without installing Python or
+Node.js on the target machine:
+
+```powershell
+.\build\shieldfont-generate.exe serve --project-root . --port 8765
+```
+
+The bundled web assets and JavaScript dependencies are extracted to the
+executable's local runtime directory when the server starts. The server binds
+to localhost by default; use `--host` only when access from another interface
+is intentional.
+
 The script requires a 64-bit Windows Python interpreter. PyInstaller work and
 specification files are placed under ignored `build\.pyinstaller-*` directories
 and removed after a successful build. Use `-KeepWork` to retain them for
@@ -81,7 +93,7 @@ shieldfont serve --project-root . --host 127.0.0.1 --port 8765
 Source font selection can be restricted to another project-relative directory:
 
 ```bash
-shieldfont serve --project-root . --fonts-root custom-fonts
+shieldfont serve --project-root . --fonts-dir custom-fonts
 ```
 
 For a Windows debug launch with persistent logs:
@@ -95,8 +107,9 @@ directories when the configuration is missing. Add a font under `.fonts/` and
 select it in the GUI before running conversion actions.
 
 The default source-font directory is `.fonts/`; it is created automatically
-when absent. The `--fonts-root` option changes this directory for the server
-session, and generated fonts under `dist/` are never treated as source inputs.
+when absent. Use `--fonts-dir` (or the compatibility alias `--fonts-root`) to
+change this directory for the server session. Generated fonts under `dist/`
+are never treated as source inputs.
 The demo corpus is available at `texts/demo.txt` and is preloaded in the GUI's
 test-text comparison field for keyword extraction workflows.
 When initializing from a source font, `--postfix` controls the suffix appended

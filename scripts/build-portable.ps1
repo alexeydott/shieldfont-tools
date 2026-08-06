@@ -12,9 +12,45 @@ $WorkDirectory = Join-Path $BuildDirectory ".pyinstaller-work"
 $SpecDirectory = Join-Path $BuildDirectory ".pyinstaller-spec"
 $ExecutablePath = Join-Path $BuildDirectory "shieldfont-generate.exe"
 $EntryPoint = Join-Path $ProjectRoot "src\shieldfont\presentation\cli\generate_main.py"
+$StaticDirectory = Join-Path $ProjectRoot "src\shieldfont\presentation\web\static"
+$VendorPackages = @(
+    "@monaco-editor\loader",
+    "@vscode\l10n",
+    "jsonc-parser",
+    "monaco-editor",
+    "monaco-languageserver-types",
+    "monaco-marker-data-provider",
+    "monaco-types",
+    "monaco-worker-manager",
+    "monaco-yaml",
+    "path-browserify",
+    "prettier",
+    "proxy-disposable",
+    "state-local",
+    "vscode-languageserver-textdocument",
+    "vscode-languageserver-types",
+    "vscode-uri",
+    "yaml"
+)
 
 if (-not (Test-Path -LiteralPath $EntryPoint -PathType Leaf)) {
     throw "CLI entry point was not found: $EntryPoint"
+}
+if (-not (Test-Path -LiteralPath $StaticDirectory -PathType Container)) {
+    throw "Web static directory was not found: $StaticDirectory"
+}
+
+$VendorDataArguments = @()
+foreach ($package in $VendorPackages) {
+    $packageSource = Join-Path $ProjectRoot "node_modules\$package"
+    if (-not (Test-Path -LiteralPath $packageSource -PathType Container)) {
+        throw "Web vendor package was not found: $packageSource"
+    }
+    $packageDestination = "shieldfont\presentation\web\bundled_node_modules\$package"
+    $VendorDataArguments += @(
+        "--add-data",
+        "$packageSource;$packageDestination"
+    )
 }
 
 $Runtime = & $Python -c 'import platform, struct, sys; print("{}|{}|{}|{}.{}".format(platform.system(), platform.machine(), struct.calcsize("P") * 8, sys.version_info.major, sys.version_info.minor))'
@@ -46,6 +82,10 @@ $PyInstallerArguments = @(
     "--console",
     "--name", "shieldfont-generate",
     "--paths", (Join-Path $ProjectRoot "src"),
+    "--add-data", "$StaticDirectory;shieldfont\presentation\web\static"
+)
+$PyInstallerArguments += $VendorDataArguments
+$PyInstallerArguments += @(
     "--distpath", $BuildDirectory,
     "--workpath", $WorkDirectory,
     "--specpath", $SpecDirectory,

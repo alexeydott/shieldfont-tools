@@ -77,6 +77,17 @@ VENDOR_IMPORTS = {
     "vscode-uri": "/vendor/vscode-uri/lib/esm/index.mjs",
     "yaml": "/vendor/yaml/browser/index.js",
 }
+
+
+def _vendor_root(project_root: Path) -> Path:
+    """Use bundled browser dependencies when running from the portable EXE."""
+
+    bundled = Path(__file__).with_name("bundled_node_modules")
+    if bundled.is_dir():
+        return bundled.resolve()
+    return (project_root / "node_modules").resolve()
+
+
 FONT_CONTENT_TYPES = {
     ".otf": "font/otf",
     ".ttf": "font/ttf",
@@ -635,10 +646,8 @@ class _RequestHandler(BaseHTTPRequestHandler):
                 "Unknown Monaco worker",
             )
             return HTTPStatus.NOT_FOUND
-        candidate = (
-            self.server.config.project_root / "node_modules" / relative
-        ).resolve()
-        node_modules = (self.server.config.project_root / "node_modules").resolve()
+        node_modules = _vendor_root(self.server.config.project_root)
+        candidate = (node_modules / relative).resolve()
         if not _is_within(candidate, node_modules) or not candidate.is_file():
             self._send_error(
                 HTTPStatus.NOT_FOUND,
@@ -690,10 +699,8 @@ class _RequestHandler(BaseHTTPRequestHandler):
                 "Vendor resource not found",
             )
             return HTTPStatus.NOT_FOUND
-        candidate = (
-            self.server.config.project_root / "node_modules" / relative_path
-        ).resolve()
-        node_modules = (self.server.config.project_root / "node_modules").resolve()
+        node_modules = _vendor_root(self.server.config.project_root)
+        candidate = (node_modules / relative_path).resolve()
         if not candidate.is_file():
             js_candidate = Path(f"{candidate}.js")
             if js_candidate.is_file():

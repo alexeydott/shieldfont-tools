@@ -17,6 +17,7 @@ from shieldfont.infrastructure.logging import (
     log_event,
     resolve_log_settings,
 )
+from shieldfont.presentation.cli.app import serve_command
 
 LOGGER = logging.getLogger("shieldfont.generate")
 
@@ -27,6 +28,7 @@ generate_app = typer.Typer(
     add_completion=False,
     rich_markup_mode=None,
 )
+generate_app.command("serve")(serve_command)
 
 
 @generate_app.callback()
@@ -134,6 +136,7 @@ Examples:
     --family MyShieldFont --output-dir build\\custom
   shieldfont-generate run shieldfont.yml --source .fonts\\segoepr.ttf `
     --dictionary dictionaries\\default.csv --font-display swap
+  shieldfont-generate serve --project-root . --fonts-dir .fonts --port 8765
 """
 
     log_event(

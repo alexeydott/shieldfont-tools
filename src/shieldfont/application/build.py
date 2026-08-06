@@ -260,11 +260,17 @@ def build_project(
             if config.font.neutral_face.enabled:
                 serialize_true_type(neutral_font, neutral_path)
             font_artifacts.append(
-                {"path": str(shield_path.relative_to(staging).as_posix())}
+                {
+                    "path": str(shield_path.relative_to(staging).as_posix()),
+                    "sha256": _sha256(shield_path),
+                }
             )
             if config.font.neutral_face.enabled:
                 font_artifacts.append(
-                    {"path": str(neutral_path.relative_to(staging).as_posix())}
+                    {
+                        "path": str(neutral_path.relative_to(staging).as_posix()),
+                        "sha256": _sha256(neutral_path),
+                    }
                 )
         css_artifacts = build_css(
             CssFace(
@@ -325,6 +331,7 @@ def build_project(
                 *[
                     {
                         "path": str(path.relative_to(staging).as_posix()),
+                        "sha256": _sha256(path),
                     }
                     for path in [*feature_paths, combined_feature_path]
                 ],
@@ -332,6 +339,7 @@ def build_project(
                     "path": str(
                         css_artifacts["css"].relative_to(staging).as_posix()
                     ),
+                    "sha256": _sha256(css_artifacts["css"]),
                 },
             ],
             verification={"status": "pending"},
