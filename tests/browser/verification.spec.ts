@@ -963,7 +963,7 @@ test("project editor supports resize, scroll sync, persistence, and server round
       }),
     });
   });
-  await page.route("**/api/shieldfont.css", async (route) => {
+  await page.route("**/api/shieldfont.css**", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "text/css",
@@ -1141,7 +1141,7 @@ test("complete GUI workflow covers every user-facing capability", async ({ page 
       body: readFileSync("deps/shieldfont/packages/font/optik-a.woff2"),
     });
   });
-  await page.route("**/api/shieldfont.css", async (route) => {
+  await page.route("**/api/shieldfont.css**", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "text/css",
