@@ -1143,7 +1143,7 @@ test("complete GUI workflow covers every user-facing capability", async ({ page 
   await page.route("**/api/action", async (route) => {
     const request = route.request().postDataJSON() as { action?: string } | null;
     const action = request?.action;
-    if (!["build", "verify", "font-inspect", "css-build", "dict-validate", "dict-normalize"]
+    if (!["build", "verify", "font-inspect", "css-build", "dict-validate", "dict-normalize", "test-text"]
       .includes(action || "")) {
       await route.continue();
       return;
@@ -1157,6 +1157,7 @@ test("complete GUI workflow covers every user-facing capability", async ({ page 
         process: { id: `browser-${action}`, status: "completed" },
         outputDir: "dist",
         artifacts: { css: "dist/shieldfont.css" },
+        shieldFont: action === "test-text" ? "workflow" : undefined,
       }),
     });
   });
