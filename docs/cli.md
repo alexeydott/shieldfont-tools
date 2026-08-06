@@ -86,6 +86,11 @@ Node.js on the target machine:
 .\build\shieldfont-generate.exe serve --project-root . --port 8765
 ```
 
+If the selected project root does not contain `shieldfont.yml`, `serve`
+creates the default project profile, directories, dictionary, and demo corpus
+before starting the GUI. When running from the `build` directory, point back to
+the repository with `--project-root ..`.
+
 The bundled web assets and JavaScript dependencies are extracted to the
 executable's local runtime directory when the server starts. The server binds
 to localhost by default; use `--host` only when access from another interface

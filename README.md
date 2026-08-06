@@ -62,3 +62,5 @@ migration commands, is documented in [`docs/cli.md`](docs/cli.md).
 Profile settings are documented in [`docs/configuration.md`](docs/configuration.md).
 Runnable compatibility and document-bound profiles are in
 [`examples/`](examples/README.md).
+When `serve` starts in a project root without `shieldfont.yml`, it creates the
+default project structure automatically.

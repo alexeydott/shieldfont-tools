@@ -15,11 +15,23 @@ from shieldfont.config.models import ShieldFontConfig
 from shieldfont.config.schema import generate_schema
 from shieldfont.domain.errors import ErrorCode, ShieldFontError
 from shieldfont.domain.font import FontSummary
+from shieldfont.presentation.cli.app import ensure_project_config
 
 
 def _write_config(path: Path, content: str) -> Path:
     path.write_text(content, encoding="utf-8")
     return path
+
+
+def test_serve_project_config_is_created_from_defaults(tmp_path: Path) -> None:
+    config_path = ensure_project_config(tmp_path)
+
+    assert config_path == tmp_path / "shieldfont.yml"
+    assert config_path.is_file()
+    assert (tmp_path / "dictionaries" / "default.csv").is_file()
+    assert (tmp_path / "texts" / "demo.txt").is_file()
+    config = load_config(config_path)
+    assert config.source.path == (tmp_path / ".fonts" / "Source.ttf").resolve()
 
 
 def test_load_config_resolves_paths_from_config_directory(tmp_path: Path) -> None:
