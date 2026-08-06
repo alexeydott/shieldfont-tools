@@ -1,50 +1,38 @@
-# A utilities kit for creating multilingual ShieldFont fonts.
+# ShieldFont Toolchain
 
-## Todo:
-1. INPUT NORMALIZATION
-   Unicode NFC/NFD handling
-   ccmp composition
-   script/language detection
+ShieldFont Toolchain is an offline-first toolkit for building multilingual
+TrueType fonts with deterministic OpenType substitutions. It combines font
+normalization, CSV dictionary processing, GSUB feature generation, CSS/codec
+output, verification, and a local web GUI.
 
-2. ENCODER
-   private document nonce
-   one-to-many alias selection
-   phrase-level optional mappings
-   case preservation
+## Purpose
 
-3. GSUB NORMALIZATION
-   ccmp
-   locl
-   mark-aware processing
+Use it to create reproducible ShieldFont variants from a TrueType source font
+and a generation profile. The standalone CLI supports profile-based builds,
+typed command-line overrides, and a portable Windows executable.
 
-4. WORD RESTORATION
-   multiple target ligatures > one source word glyph
-   longest-first matching
-   class-based boundary logic
-   fire-then-revert
+## System requirements
 
-5. VISUAL POLYMORPHISM
-   deterministic calt variants
-   optional rand/GPOS/COLR profile
+- Python 3.12 or newer
+- A TrueType source font with `glyf` outlines
+- Node.js 20 or newer and npm for codec, web, and browser checks
+- Windows 10/11 x64 for the prebuilt portable executable
+- Chromium, Firefox, and WebKit only when running browser verification
 
-6. FONT QUALITY
-   composites built from HarfBuzz-shaped runs
-   exact GPOS offsets
-   correct hmtx bounds
-   GDEF LigatureCaretList
-   mark/mkmk preservation
+## Quick start
 
-7. DELIVERY
-   per-document mapping
-   per-document subset WOFF2
-   opaque family names
-   post format 3
-   no plaintext metadata
+```powershell
+python -m pip install -e .
+shieldfont init .
+shieldfont-generate run shieldfont.yml --source .fonts\Source.ttf --postfix _shld
+```
 
-8. AUDIT
-   mapping audit
-   GSUB structural audit
-   HarfBuzz round-trip
-   Chrome/Firefox/Safari screenshot comparison
-   substring-collision corpus
-   NFC/NFD and combining-mark corpus
+Build the portable Windows executable:
+
+```powershell
+python -m pip install -e ".[portable]"
+.\scripts\build-portable.ps1
+.\build\shieldfont-generate.exe run shieldfont.yml --help
+```
+
+See [`docs/cli.md`](docs/cli.md) for commands and [`docs/configuration.md`](docs/configuration.md) for profile settings.
