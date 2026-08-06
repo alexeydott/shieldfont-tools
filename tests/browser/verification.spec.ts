@@ -943,6 +943,28 @@ test("project editor preferences persist and control editor services", async ({ 
 
 test("project editor supports resize, scroll sync, persistence, and server round-trip", async ({ page }) => {
   await page.setViewportSize({ width: 1536, height: 1400 });
+  const fontPath = "deps/shieldfont/packages/font/optik-a.woff2";
+  await page.route("**/api/files", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        files: [
+          { path: fontPath, kind: "font", size: 1 },
+          { path: "dictionaries/default.csv", kind: "dictionary", size: 1 },
+          { path: "dictionaries/ru-alpha.csv", kind: "dictionary", size: 1 },
+          { path: "dictionaries/ru-beta.csv", kind: "dictionary", size: 1 },
+        ],
+      }),
+    });
+  });
+  await page.route("**/api/shieldfont.css", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "text/css",
+      body: "",
+    });
+  });
   const consoleErrors: string[] = [];
   const failedRequests: string[] = [];
   page.on("console", (message) => {
