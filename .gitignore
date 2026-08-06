@@ -55,6 +55,8 @@ temp/
 *.bak
 *.log
 shieldfont.yml.previous
+/shieldfont.css
+/sri.json
 
 # Generated dictionary exports and verification artifacts
 dictionaries/*.json
