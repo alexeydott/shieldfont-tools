@@ -25,6 +25,7 @@ generate_app = typer.Typer(
     help="Generate ShieldFont artifacts from a profile and command-line overrides.",
     no_args_is_help=True,
     add_completion=False,
+    rich_markup_mode=None,
 )
 
 
